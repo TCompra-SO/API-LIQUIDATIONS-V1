@@ -9,8 +9,7 @@ export interface RequerimentI {
   payment_methodID: number;
   completion_date: Date;
   submission_dateID: number;
-  warranty?: number;
-  durationID?: number;
+  state_article: number;
   allowed_bidersID: number[];
   userID: string;
   subUserEmail: string;

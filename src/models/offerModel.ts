@@ -42,27 +42,11 @@ const OfferSchema = new Schema<OfferI>({
     type: Number,
     required: true,
   },
-  warranty: {
-    type: Number,
-    required: false,
-  },
-  timeMeasurementID: {
-    type: Number,
-    required: false,
-  },
-  support: {
-    type: Number,
-    required: false,
-  },
   budget: {
     type: Number,
     required: true,
   },
   includesIGV: {
-    type: Boolean,
-    required: true,
-  },
-  includesDelivery: {
     type: Boolean,
     required: true,
   },
@@ -90,14 +74,6 @@ const OfferSchema = new Schema<OfferI>({
     type: String,
     required: true,
   },
-  images: {
-    type: [String],
-    required: false,
-  },
-  files: {
-    type: [String],
-    required: false,
-  },
   canceledByCreator: {
     type: Boolean,
     required: false,
@@ -110,7 +86,14 @@ const OfferSchema = new Schema<OfferI>({
     type: Boolean,
     required: false,
   },
+  review: {
+    type: Boolean,
+    required: false,
+  },
 });
 
 // Exportamos el modelo
-export const OfferModel = mongoose.model<OfferI>("OffersProducts", OfferSchema);
+export const OfferModel = mongoose.model<OfferI>(
+  "OffersLiquidations",
+  OfferSchema
+);

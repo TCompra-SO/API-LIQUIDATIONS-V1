@@ -6,12 +6,9 @@ export interface OfferI {
   cityID: number;
   deliveryTimeID: number;
   currencyID: number;
-  warranty?: number;
-  timeMeasurementID?: number;
-  support: number;
   budget: number;
   includesIGV: boolean;
-  includesDelivery: boolean;
+  //includesDelivery: boolean;
   requerimentID: string;
   stateID: number;
   publishDate: Date;
@@ -19,10 +16,11 @@ export interface OfferI {
   userID: string;
   entityID: string;
   subUserEmail: string;
-  images: string[];
-  files: string[];
+  //images: string[];
+  //files: string[];
   canceledByCreator: boolean;
   selectionDate?: Date;
   delivered?: boolean;
   cancelRated?: boolean;
+  review?: boolean;
 }

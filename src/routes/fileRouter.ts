@@ -1,7 +1,7 @@
 import { Router } from "express";
 import {
   upload,
-  uploadDocumentsOffer,
+  //uploadDocumentsOffer,
   uploadDocumentsRequeriment,
 } from "../controllers/fileController";
 export class FileRouter {
@@ -16,7 +16,7 @@ export class FileRouter {
       uploadDocumentsRequeriment
     );
 
-    this.router.post("/uploadDocumentsOffer", upload, uploadDocumentsOffer);
+    //  this.router.post("/uploadDocumentsOffer", upload, uploadDocumentsOffer);
   }
 
   static getRouter(): Router {

@@ -3,7 +3,7 @@ import { RequerimentRouter } from "./requerimentRouter";
 import { OfferRouter } from "./offerRouter";
 import { ImageRouter } from "./imageRouter";
 import { FileRouter } from "./fileRouter";
-import { PurchaseOrderRouter } from "./purchaseOrderRouter";
+import { SaleOrderRouter } from "./purchaseOrderRouter";
 import { checkJwt } from "../middlewares/session";
 
 export class RootRouter {
@@ -16,7 +16,7 @@ export class RootRouter {
     this.router.use("/v1/offers/", checkJwt, OfferRouter.getRouter());
     this.router.use("/v1/images/", ImageRouter.getRouter());
     this.router.use("/v1/documents/", FileRouter.getRouter());
-    this.router.use("/v1/purchaseOrder/", PurchaseOrderRouter.getRouter());
+    this.router.use("/v1/saleOrder/", SaleOrderRouter.getRouter());
   }
 
   static getRouter(): Router {

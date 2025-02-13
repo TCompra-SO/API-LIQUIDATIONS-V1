@@ -1,66 +1,63 @@
 import { Router } from "express";
 import {
-  CreatePurchaseOrderController,
-  getPurchaseOrdersClientController,
-  getPurchaseOrdersProviderController,
-  getPurchaseOrderIDController,
-  getPurchaseOrdersController,
-  getPurchaseOrderPDFController,
-  getPurchaseOrdersByProvider,
-  getPurchaseOrdersByClient,
+  CreateSaleOrderController,
+  getSaleOrdersClientController,
+  getSaleOrdersProviderController,
+  getSaleOrderIDController,
+  getSaleOrdersController,
+  getSaleOrderPDFController,
+  getSaleOrdersByProvider,
+  getSaleOrdersByClient,
   canceledController,
-  searchPurchaseOrdersByProviderController,
-  searchPurchaseOrdersByClientController,
-} from "../controllers/purchaseOrderController";
+  searchSaleOrdersByProviderController,
+  searchSaleOrdersByClientController,
+} from "../controllers/saleOrderController";
 
-export class PurchaseOrderRouter {
-  private static instance: PurchaseOrderRouter;
+export class SaleOrderRouter {
+  private static instance: SaleOrderRouter;
   private router: Router;
 
   private constructor() {
     this.router = Router();
 
     // ORDEN DE COMPRA
-    this.router.post("/createPurchaseOrder", CreatePurchaseOrderController);
+    this.router.post("/createSaleOrder", CreateSaleOrderController);
     this.router.post(
-      "/searchPurchaseOrdersByProvider",
-      searchPurchaseOrdersByProviderController
+      "/searchSaleOrdersByProvider",
+      searchSaleOrdersByProviderController
     );
     this.router.post(
-      "/searchPurchaseOrdersByClient",
-      searchPurchaseOrdersByClientController
+      "/searchSaleOrdersByClient",
+      searchSaleOrdersByClientController
+    );
+    this.router.get("/getSaleOrders/:page/:pageSize", getSaleOrdersController);
+    this.router.get(
+      "/getSaleOrdersClient/:userClientID/:page/:pageSize",
+      getSaleOrdersClientController
     );
     this.router.get(
-      "/getPurchaseOrders/:page/:pageSize",
-      getPurchaseOrdersController
-    );
-    this.router.get(
-      "/getPurchaseOrdersClient/:userClientID/:page/:pageSize",
-      getPurchaseOrdersClientController
-    );
-    this.router.get(
-      "/getPurchaseOrdersProvider/:userProviderID/:page/:pageSize",
-      getPurchaseOrdersProviderController
+      "/getSaleOrdersProvider/:userProviderID/:page/:pageSize",
+      getSaleOrdersProviderController
     );
 
-    this.router.get("/getpurchaseOrderID/:uid", getPurchaseOrderIDController);
-    this.router.get("/getpurchaseOrderPDF/:uid", getPurchaseOrderPDFController);
+    this.router.get("/getSaleOrderID/:uid", getSaleOrderIDController);
+    this.router.get("/getSaleOrderPDF/:uid", getSaleOrderPDFController);
     this.router.get(
-      "/getpurchaseOrdersByProvider/:uid/:typeUser/:page/:pageSize",
-      getPurchaseOrdersByProvider
+      "/getSaleOrdersByProvider/:uid/:typeUser/:page/:pageSize",
+      getSaleOrdersByProvider
     );
     this.router.get(
-      "/getpurchaseOrdersByClient/:uid/:typeUser/:page/:pageSize",
-      getPurchaseOrdersByClient
+      "/getSaleOrdersByClient/:uid/:typeUser/:page/:pageSize",
+      getSaleOrdersByClient
     );
 
-    this.router.get("/canceled/:purchaseOrderID", canceledController);
+    this.router.get("/canceled/:saleOrderID", canceledController);
   }
 
   static getRouter(): Router {
-    if (!PurchaseOrderRouter.instance) {
-      PurchaseOrderRouter.instance = new PurchaseOrderRouter();
+    if (!SaleOrderRouter.instance) {
+      SaleOrderRouter.instance = new SaleOrderRouter();
     }
-    return PurchaseOrderRouter.instance.router;
+    return SaleOrderRouter.instance.router;
   }
 }

@@ -1,6 +1,6 @@
 import cloudinary from "cloudinary";
 import dotenv from "dotenv";
-import ProductModel from "../models/productModel";
+import ProductModel from "../models/liquidationModel";
 import { RequerimentService } from "./requerimentService";
 import { OfferService } from "./offerService";
 import { OfferModel } from "../models/offerModel";
@@ -96,7 +96,7 @@ export class ImageService {
       };
     }
   };
-
+  /* ya no se sube imagen
   static uploadImagesOffer = async (filePaths: string[], uid: string) => {
     const imageUrls: string[] = [];
     let num = 1;
@@ -178,5 +178,5 @@ export class ImageService {
         },
       };
     }
-  };
+  };*/
 }

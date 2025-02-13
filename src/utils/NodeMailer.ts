@@ -1,13 +1,13 @@
 import nodemailer from "nodemailer";
-import { PurchaseOrderI } from "../interfaces/purchaseOrder.interface";
-import { OrderPurchaseTemplate } from "./OrderPurchaseTemplate";
-import { PurchaseOrderService } from "../services/purchaseOrderService";
-export const sendEmailPurchaseOrder = async (
-  data: Omit<PurchaseOrderI, "uid">,
+import { SaleOrderI } from "../interfaces/saleOrder.interface";
+import { OrderSaleTemplate } from "./OrderSaleTemplate";
+import { SaleOrderService } from "../services/saleOrderService";
+export const sendEmailSaleOrder = async (
+  data: Omit<SaleOrderI, "uid">,
   emailUser: string
 ) => {
-  const html = await OrderPurchaseTemplate(data);
-  const pdfBuffer = await PurchaseOrderService.createPDF(html);
+  const html = await OrderSaleTemplate(data);
+  const pdfBuffer = await SaleOrderService.createPDF(html);
 
   const transporter = nodemailer.createTransport({
     service: "gmail",
@@ -21,7 +21,7 @@ export const sendEmailPurchaseOrder = async (
     from: '"TCOMPRA" <tcompraperu@gmail.com>', // Cambia al correo de la empresa si es necesario
     to: emailUser,
     subject: `Se aceptó tu oferta para el requerimiento: ${data.requerimentTitle}`,
-    html: `${await OrderPurchaseTemplate(data)}`,
+    html: `${await OrderSaleTemplate(data)}`,
     attachments: [
       {
         filename: `orden_de_compra_${data.userClientID}.pdf`,

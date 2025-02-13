@@ -1,4 +1,4 @@
-export interface PurchaseOrderI {
+export interface SaleOrderI {
   uid: string;
   type: TypeRequeriment;
   userClientID: string;
@@ -27,7 +27,7 @@ export interface PurchaseOrderI {
   documentProvider: string;
   emailProvider: string;
   subUserEmailProvider: string;
-  stateID: PurchaseOrderState;
+  stateID: SaleOrderState;
   offerID: string;
   offerTitle: string;
   price_Filter: CommonFilter;
@@ -46,7 +46,7 @@ export interface ScoreStateI {
   deliveredClient: boolean;
   deliveredProvider: boolean;
 }
-export enum PurchaseOrderState {
+export enum SaleOrderState {
   PENDING = 1,
   CANCELED = 2,
   FINISHED = 3,

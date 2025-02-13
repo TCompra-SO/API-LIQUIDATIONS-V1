@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import { PurchaseOrderService } from "../services/purchaseOrderService";
+import { SaleOrderService } from "../services/saleOrderService";
 const fs = require("fs");
 
-const CreatePurchaseOrderController = async (req: Request, res: Response) => {
+const CreateSaleOrderController = async (req: Request, res: Response) => {
   try {
     const {
       requerimentID,
@@ -12,7 +12,7 @@ const CreatePurchaseOrderController = async (req: Request, res: Response) => {
       location_Filter,
       warranty_Filter,
     } = req.body;
-    const responseUser = await PurchaseOrderService.CreatePurchaseOrder(
+    const responseUser = await SaleOrderService.CreateSaleOrder(
       requerimentID,
       offerID,
       price_Filter,
@@ -27,7 +27,7 @@ const CreatePurchaseOrderController = async (req: Request, res: Response) => {
       res.status(responseUser.code).send(responseUser.error);
     }
   } catch (error) {
-    console.error("Error en CreatePurchaseOrderController", error);
+    console.error("Error en CreateSaleOrderController", error);
     res.status(500).send({
       success: false,
       msg: "Error interno del Servidor",
@@ -35,10 +35,10 @@ const CreatePurchaseOrderController = async (req: Request, res: Response) => {
   }
 };
 
-const getPurchaseOrdersController = async (req: Request, res: Response) => {
+const getSaleOrdersController = async (req: Request, res: Response) => {
   try {
     const { page, pageSize } = req.params;
-    const responseUser = await PurchaseOrderService.getPurchaseOrders(
+    const responseUser = await SaleOrderService.getSaleOrders(
       Number(page),
       Number(pageSize)
     );
@@ -56,13 +56,10 @@ const getPurchaseOrdersController = async (req: Request, res: Response) => {
   }
 };
 
-const getPurchaseOrdersProviderController = async (
-  req: Request,
-  res: Response
-) => {
+const getSaleOrdersProviderController = async (req: Request, res: Response) => {
   const { userProviderID, page, pageSize } = req.params;
   try {
-    const responseUser = await PurchaseOrderService.getPurchaseOrdersProvider(
+    const responseUser = await SaleOrderService.getSaleOrdersProvider(
       userProviderID,
       Number(page),
       Number(pageSize)
@@ -73,7 +70,7 @@ const getPurchaseOrdersProviderController = async (
       res.status(responseUser.code).send(responseUser.error);
     }
   } catch (error) {
-    console.error("Error en getPurchaseOrderByEntityProviderController", error);
+    console.error("Error en getSaleOrderByEntityProviderController", error);
     res.status(500).send({
       success: false,
       msg: "Error interno del Servidor",
@@ -81,13 +78,10 @@ const getPurchaseOrdersProviderController = async (
   }
 };
 
-const getPurchaseOrdersClientController = async (
-  req: Request,
-  res: Response
-) => {
+const getSaleOrdersClientController = async (req: Request, res: Response) => {
   const { userClientID, page, pageSize } = req.params;
   try {
-    const responseUser = await PurchaseOrderService.getPurchaseOrdersClient(
+    const responseUser = await SaleOrderService.getSaleOrdersClient(
       userClientID,
       Number(page),
       Number(pageSize)
@@ -98,7 +92,7 @@ const getPurchaseOrdersClientController = async (
       res.status(responseUser.code).send(responseUser.error);
     }
   } catch (error) {
-    console.error("Error en getPurchaseOrderByEntityClientController", error);
+    console.error("Error en getSaleOrderByEntityClientController", error);
     res.status(500).send({
       success: false,
       msg: "Error interno del Servidor",
@@ -106,17 +100,17 @@ const getPurchaseOrdersClientController = async (
   }
 };
 
-const getPurchaseOrderIDController = async (req: Request, res: Response) => {
+const getSaleOrderIDController = async (req: Request, res: Response) => {
   const { uid } = req.params;
   try {
-    const responseUser = await PurchaseOrderService.getPurchaseOrderID(uid);
+    const responseUser = await SaleOrderService.getSaleOrderID(uid);
     if (responseUser && responseUser.success) {
       res.status(responseUser.code).send(responseUser);
     } else {
       res.status(responseUser.code).send(responseUser.error);
     }
   } catch (error) {
-    console.error("Error en getPurchaseOrderIDController", error);
+    console.error("Error en getSaleOrderIDController", error);
     res.status(500).send({
       success: false,
       msg: "Error interno del Servidor",
@@ -124,23 +118,22 @@ const getPurchaseOrderIDController = async (req: Request, res: Response) => {
   }
 };
 
-const getPurchaseOrdersByProvider = async (req: Request, res: Response) => {
+const getSaleOrdersByProvider = async (req: Request, res: Response) => {
   const { uid, typeUser, page, pageSize } = req.params;
   try {
-    const responseUser =
-      await PurchaseOrderService.getPurchaseOrdersByEntityProvider(
-        uid,
-        Number(typeUser),
-        Number(page),
-        Number(pageSize)
-      );
+    const responseUser = await SaleOrderService.getSaleOrdersByEntityProvider(
+      uid,
+      Number(typeUser),
+      Number(page),
+      Number(pageSize)
+    );
     if (responseUser && responseUser.success) {
       res.status(responseUser.code).send(responseUser);
     } else {
       res.status(responseUser.code).send(responseUser.error);
     }
   } catch (error) {
-    console.error("Error en getPurchaseOrdersByProviderController", error);
+    console.error("Error en getSaleOrdersByProviderController", error);
     res.status(500).send({
       success: false,
       msg: "Error interno del Servidor",
@@ -148,23 +141,22 @@ const getPurchaseOrdersByProvider = async (req: Request, res: Response) => {
   }
 };
 
-const getPurchaseOrdersByClient = async (req: Request, res: Response) => {
+const getSaleOrdersByClient = async (req: Request, res: Response) => {
   const { uid, typeUser, page, pageSize } = req.params;
   try {
-    const responseUser =
-      await PurchaseOrderService.getPurchaseOrdersByEntityClient(
-        uid,
-        Number(typeUser),
-        Number(page),
-        Number(pageSize)
-      );
+    const responseUser = await SaleOrderService.getSaleOrdersByEntityClient(
+      uid,
+      Number(typeUser),
+      Number(page),
+      Number(pageSize)
+    );
     if (responseUser && responseUser.success) {
       res.status(responseUser.code).send(responseUser);
     } else {
       res.status(responseUser.code).send(responseUser.error);
     }
   } catch (error) {
-    console.error("Error en getPurchaseOrdersByClientController", error);
+    console.error("Error en getSaleOrdersByClientController", error);
     res.status(500).send({
       success: false,
       msg: "Error interno del Servidor",
@@ -172,18 +164,18 @@ const getPurchaseOrdersByClient = async (req: Request, res: Response) => {
   }
 };
 
-const getPurchaseOrderPDFController = async (req: Request, res: Response) => {
+const getSaleOrderPDFController = async (req: Request, res: Response) => {
   const { uid } = req.params;
 
   try {
-    const responseUser = await PurchaseOrderService.getPurchaseOrderPDF(uid);
+    const responseUser = await SaleOrderService.getSaleOrderPDF(uid);
     if (responseUser && responseUser.success) {
       res.status(responseUser.code).send(responseUser);
     } else {
       res.status(responseUser.code).send(responseUser.error);
     }
   } catch (error) {
-    console.error("Error en getPurchaseOrderPDFController", error);
+    console.error("Error en getSaleOrderPDFController", error);
     return res.status(500).send({
       success: false,
       msg: "Error interno del Servidor",
@@ -192,9 +184,9 @@ const getPurchaseOrderPDFController = async (req: Request, res: Response) => {
 };
 
 const canceledController = async (req: Request, res: Response) => {
-  const { purchaseOrderID } = req.params;
+  const { saleOrderID } = req.params;
   try {
-    const responseUser = await PurchaseOrderService.canceled(purchaseOrderID);
+    const responseUser = await SaleOrderService.canceled(saleOrderID);
     if (responseUser && responseUser.success) {
       res.status(responseUser.code).send(responseUser);
     } else {
@@ -209,7 +201,7 @@ const canceledController = async (req: Request, res: Response) => {
   }
 };
 
-const searchPurchaseOrdersByProviderController = async (
+const searchSaleOrdersByProviderController = async (
   req: Request,
   res: Response
 ) => {
@@ -225,49 +217,7 @@ const searchPurchaseOrdersByProviderController = async (
     filterData,
   } = req.body;
   try {
-    const responseUser =
-      await PurchaseOrderService.searchPurchaseOrderByProvider(
-        keyWords,
-        typeUser,
-        userId,
-        Number(page),
-        Number(pageSize),
-        fieldName,
-        Number(orderType),
-        filterColumn,
-        filterData
-      );
-    if (responseUser && responseUser.success) {
-      res.status(responseUser.code).send(responseUser);
-    } else {
-      res.status(responseUser.code).send(responseUser.error);
-    }
-  } catch (error) {
-    console.error("Error en searchPurchaseOrdersByProviderController", error);
-    res.status(500).send({
-      success: false,
-      msg: "Error interno del Servidor",
-    });
-  }
-};
-
-const searchPurchaseOrdersByClientController = async (
-  req: Request,
-  res: Response
-) => {
-  const {
-    keyWords,
-    typeUser,
-    userId,
-    page,
-    pageSize,
-    fieldName,
-    orderType,
-    filterColumn,
-    filterData,
-  } = req.body;
-  try {
-    const responseUser = await PurchaseOrderService.searchPurchaseOrderByClient(
+    const responseUser = await SaleOrderService.searchSaleOrderByProvider(
       keyWords,
       typeUser,
       userId,
@@ -284,7 +234,48 @@ const searchPurchaseOrdersByClientController = async (
       res.status(responseUser.code).send(responseUser.error);
     }
   } catch (error) {
-    console.error("Error en searchPurchaseOrdersByClientController", error);
+    console.error("Error en searchSaleOrdersByProviderController", error);
+    res.status(500).send({
+      success: false,
+      msg: "Error interno del Servidor",
+    });
+  }
+};
+
+const searchSaleOrdersByClientController = async (
+  req: Request,
+  res: Response
+) => {
+  const {
+    keyWords,
+    typeUser,
+    userId,
+    page,
+    pageSize,
+    fieldName,
+    orderType,
+    filterColumn,
+    filterData,
+  } = req.body;
+  try {
+    const responseUser = await SaleOrderService.searchSaleOrderByClient(
+      keyWords,
+      typeUser,
+      userId,
+      Number(page),
+      Number(pageSize),
+      fieldName,
+      Number(orderType),
+      filterColumn,
+      filterData
+    );
+    if (responseUser && responseUser.success) {
+      res.status(responseUser.code).send(responseUser);
+    } else {
+      res.status(responseUser.code).send(responseUser.error);
+    }
+  } catch (error) {
+    console.error("Error en searchSaleOrdersByClientController", error);
     res.status(500).send({
       success: false,
       msg: "Error interno del Servidor",
@@ -293,15 +284,15 @@ const searchPurchaseOrdersByClientController = async (
 };
 
 export {
-  CreatePurchaseOrderController,
-  getPurchaseOrdersController,
-  getPurchaseOrdersProviderController,
-  getPurchaseOrdersClientController,
-  getPurchaseOrderIDController,
-  getPurchaseOrderPDFController,
-  getPurchaseOrdersByProvider,
-  getPurchaseOrdersByClient,
+  CreateSaleOrderController,
+  getSaleOrdersController,
+  getSaleOrdersProviderController,
+  getSaleOrdersClientController,
+  getSaleOrderIDController,
+  getSaleOrderPDFController,
+  getSaleOrdersByProvider,
+  getSaleOrdersByClient,
   canceledController,
-  searchPurchaseOrdersByProviderController,
-  searchPurchaseOrdersByClientController,
+  searchSaleOrdersByProviderController,
+  searchSaleOrdersByClientController,
 };

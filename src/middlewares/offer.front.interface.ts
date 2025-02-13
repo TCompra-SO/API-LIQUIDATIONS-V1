@@ -12,19 +12,20 @@ export interface OfferFrontI {
   price: number;
   state: number;
   description?: string;
-  warranty?: number;
-  warrantyTime?: number;
+  //warranty?: number;
+  //warrantyTime?: number;
   deliveryTime: number;
   location: number;
-  image?: string[];
-  document?: string[];
+  //image?: string[];
+  //document?: string[];
   selectionDate?: string;
   igv?: boolean;
   deliveryDate?: string;
   delivered?: boolean;
   canceledByCreator?: boolean;
-  includesDelivery?: boolean;
+  // includesDelivery?: boolean;
   cancelRated?: boolean;
+  review?: boolean;
 }
 
 interface OfferFrontE extends OfferI {
@@ -52,23 +53,19 @@ function transformOffersData(response: any): {
     price: offer.budget, // 'budget' renombrado a 'price'
     state: offer.stateID, // 'stateID' renombrado a 'state'
     description: offer.description, // Sin cambios
-    warranty: offer?.warranty, // Sin cambios
-    warrantyTime: offer?.timeMeasurementID, // 'timeMeasurementID' renombrado a 'warrantyTime'
     deliveryTime: offer.deliveryTimeID, // 'deliveryTimeID' renombrado a 'deliveryTime'
     location: offer.cityID, // 'cityID' renombrado a 'location'
-    image: offer.images, //
-    document: offer.files, //
     selectionDate: offer.selectionDate?.toISOString(), //
     igv: offer.includesIGV, // 'includesIGV' renombrado a 'igv'
     deliveryDate: offer.deliveryDate?.toISOString(), // 'deliveryDate' convertido a string
     canceledByCreator: offer.canceledByCreator, // Sin cambios
-    includesDelivery: offer.includesDelivery,
     delivered: offer.delivered, // Sin cambios
     userName: offer.userName,
     subUserName: offer.subUserName,
     emailUser: offer?.email,
     emailSubUser: offer?.subUserEmail,
     cancelRated: offer?.cancelRated,
+    review: offer.review,
   }));
 
   return {

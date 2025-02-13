@@ -1,20 +1,21 @@
 import { RequerimentI } from "../interfaces/requeriment.interface";
 import { SortOrder } from "mongoose";
-import ProductModel from "../models/productModel";
+import LiquidationModel from "../models/liquidationModel";
 import Joi from "joi";
 import axios from "axios";
 import { OfferService } from "./offerService";
 import { OfferModel } from "../models/offerModel";
-import { PurchaseOrderService } from "./purchaseOrderService";
+import { SaleOrderService } from "./saleOrderService";
 import Fuse from "fuse.js";
 import { PipelineStage } from "mongoose";
 import {
+  NameAPI,
   OfferState,
   OrderType,
-  PurchaseOrderState,
+  SaleOrderState,
   RequirementState,
 } from "../utils/Types";
-import PurchaseOrderModel from "../models/purchaseOrder";
+import SaleOrderModel from "../models/saleOrder";
 import { number } from "joi";
 import mongoose from "mongoose";
 import { TypeUser, TypeEntity } from "../utils/Types";
@@ -35,8 +36,7 @@ export class RequerimentService {
       payment_methodID,
       completion_date,
       submission_dateID,
-      warranty,
-      durationID,
+      state_article,
       allowed_bidersID,
       userID,
     } = data;
@@ -64,7 +64,7 @@ export class RequerimentService {
         subUserEmail = resultData.data.data[0]?.auth_users?.email;
       }
 
-      const newRequeriment = new ProductModel({
+      const newRequeriment = new LiquidationModel({
         name,
         description,
         categoryID,
@@ -74,8 +74,7 @@ export class RequerimentService {
         payment_methodID,
         completion_date,
         submission_dateID,
-        warranty,
-        durationID,
+        state_article,
         allowed_bidersID,
         userID,
         subUserEmail,
@@ -96,7 +95,12 @@ export class RequerimentService {
         };
       }
 
-      await this.manageCount(entityID, userID, "numProducts");
+      await this.manageCount(
+        entityID,
+        userID,
+        "num" + NameAPI.NAME + "s",
+        true
+      );
 
       return {
         success: true,
@@ -121,7 +125,8 @@ export class RequerimentService {
   static manageCount = async (
     entityID: string,
     userID: string,
-    field: string
+    field: string,
+    increase: boolean
   ) => {
     const ResourceCountersCollection =
       mongoose.connection.collection("resourcecounters");
@@ -131,51 +136,35 @@ export class RequerimentService {
 
     try {
       const CompanyData = await CompanyModel.findOne({ uid: userID });
-
-      let typeEntity;
       const userMasterData = await UserMasterCollection.findOne({
         role: TypeEntity.MASTER,
       });
 
+      // Define si incrementa (+1) o decrementa (-1)
+      const value = increase ? 1 : -1;
+
+      // Función para actualizar el contador
+      const updateCounter = async (uid: string, typeEntity: string) => {
+        await ResourceCountersCollection.updateOne(
+          { uid, typeEntity },
+          { $inc: { [field]: value }, $set: { updateDate: new Date() } },
+          { upsert: true }
+        );
+      };
+
       if (entityID !== userID) {
-        typeEntity = TypeEntity.COMPANY;
-
-        // Crear o actualizar el contador del campo (por ejemplo, numProducts) para el usuario (subusuario)
-        await ResourceCountersCollection.updateOne(
-          { uid: userID, typeEntity: TypeEntity.SUBUSER },
-          { $inc: { [field]: 1 }, $set: { updateDate: new Date() } }, // Usar el campo dinámico pasado como parámetro
-          { upsert: true } // No usamos 'new' ni 'setDefaultsOnInsert' aquí
-        );
-        // Crear o actualizar el contador del campo para la compañía
-        await ResourceCountersCollection.updateOne(
-          { uid: entityID, typeEntity: TypeEntity.COMPANY },
-          { $inc: { [field]: 1 }, $set: { updateDate: new Date() } }, // Usar el campo dinámico pasado como parámetro
-          { upsert: true } // No usamos 'new' ni 'setDefaultsOnInsert' aquí
-        );
+        await updateCounter(userID, TypeEntity.SUBUSER); // Subusuario
+        await updateCounter(entityID, TypeEntity.COMPANY); // Compañía
       } else if (CompanyData) {
-        typeEntity = TypeEntity.COMPANY;
-        // Crear o actualizar el contador del campo para la compañía
-        await ResourceCountersCollection.updateOne(
-          { uid: entityID, typeEntity: TypeEntity.COMPANY },
-          { $inc: { [field]: 1 }, $set: { updateDate: new Date() } }, // Usar el campo dinámico pasado como parámetro
-          { upsert: true } // No usamos 'new' ni 'setDefaultsOnInsert' aquí
-        );
+        await updateCounter(entityID, TypeEntity.COMPANY); // Compañía
       } else {
-        typeEntity = TypeEntity.USER;
-
-        // Crear o actualizar el contador del campo para el usuario
-        await ResourceCountersCollection.updateOne(
-          { uid: entityID, typeEntity: TypeEntity.USER },
-          { $inc: { [field]: 1 }, $set: { updateDate: new Date() } }, // Usar el campo dinámico pasado como parámetro
-          { upsert: true } // No usamos 'new' ni 'setDefaultsOnInsert' aquí
-        );
+        await updateCounter(entityID, TypeEntity.USER); // Usuario
       }
 
-      await ResourceCountersCollection.updateOne(
-        { uid: userMasterData?.uid, typeEntity: TypeEntity.MASTER },
-        { $inc: { [field]: 1 }, $set: { updateDate: new Date() } }, // Usar el campo dinámico pasado como parámetro
-        { upsert: true } // No usamos 'new' ni 'setDefaultsOnInsert' aquí
-      );
+      // Actualiza el contador del usuario MASTER si existe
+      if (userMasterData?.uid) {
+        await updateCounter(userMasterData.uid, TypeEntity.MASTER);
+      }
     } catch (error: any) {
       console.error("Error en manageCount:", error.message);
       return {
@@ -187,10 +176,10 @@ export class RequerimentService {
 
   static getRequeriments = async (page: number, pageSize: number) => {
     try {
-      const requeriments = await ProductModel.aggregate([
+      const requeriments = await LiquidationModel.aggregate([
         {
           $lookup: {
-            from: "offersproducts", // Nombre de la colección de las ofertas, ajusta según tu modelo
+            from: "offersliquidations", // Nombre de la colección de las ofertas, ajusta según tu modelo
             localField: "winOffer.uid", // Campo de la colección de requerimientos
             foreignField: "uid", // Campo de la colección de ofertas
             as: "winOffer", // Alias para los resultados relacionados
@@ -222,8 +211,7 @@ export class RequerimentService {
             payment_methodID: 1,
             completion_date: 1,
             submission_dateID: 1,
-            warranty: 1,
-            durationID: 1,
+            state_article: 1,
             allowed_bidersID: 1,
             entityID: 1,
             userID: 1,
@@ -255,7 +243,9 @@ export class RequerimentService {
       ]);
 
       // Obtener el número total de documentos (sin paginación)
-      const totalDocuments = await ProductModel.countDocuments({ stateID: 1 });
+      const totalDocuments = await LiquidationModel.countDocuments({
+        stateID: 1,
+      });
 
       if (!requeriments) {
         return {
@@ -291,7 +281,7 @@ export class RequerimentService {
 
   static getRequerimentById = async (uid: string) => {
     try {
-      const requeriment = await ProductModel.aggregate([
+      const requeriment = await LiquidationModel.aggregate([
         // Buscar el requerimiento por su uid
         {
           $match: {
@@ -301,7 +291,7 @@ export class RequerimentService {
         // Relacionar la colección 'OffersProducts' (ofertas) con la colección de requerimientos (Products)
         {
           $lookup: {
-            from: "offersproducts", // Nombre de la colección de ofertas
+            from: "offersliquidations", // Nombre de la colección de ofertas
             localField: "winOffer.uid", // El campo en los requerimientos (Products) que relacionamos (winOffer.uid)
             foreignField: "uid", // El campo en las ofertas (Offers) con el que se relaciona (uid de la oferta)
             as: "winOffer", // El alias para la relación, esto almacenará la oferta ganadora relacionada
@@ -361,8 +351,7 @@ export class RequerimentService {
             payment_methodID: 1,
             completion_date: 1,
             submission_dateID: 1,
-            warranty: 1,
-            durationID: 1,
+            state_article: 1,
             allowed_bidersID: 1,
             entityID: 1,
             subUserEmail: 1,
@@ -390,7 +379,8 @@ export class RequerimentService {
           },
         },
       ]);
-      if (!requeriment) {
+
+      if (requeriment.length === 0) {
         return {
           success: false,
           code: 404,
@@ -437,67 +427,7 @@ export class RequerimentService {
       } else {
         order = 1;
       }
-      /*
-      const pipeline = [
-        // Buscar el requerimiento por su uid
-        {
-          $match: {
-            entityID: uid,
-            stateID: { $ne: 7 }, // Excluir documentos donde stateID = 7
-          },
-        },
-        // Relacionar la colección 'OffersProducts' (ofertas) con la colección de requerimientos (Products)
-        {
-          $lookup: {
-            from: "offersproducts", // Nombre de la colección de ofertas
-            localField: "winOffer.uid", // El campo en los requerimientos (Products) que relacionamos (winOffer.uid)
-            foreignField: "uid", // El campo en las ofertas (Offers) con el que se relaciona (uid de la oferta)
-            as: "winOffer", // El alias para la relación, esto almacenará la oferta ganadora relacionada
-          },
-        },
-        // Opcionalmente, puedes agregar un paso $unwind si solo quieres una única oferta ganadora
-        {
-          $unwind: {
-            path: "$winOffer", // Esto descompone el array de ofertas ganadoras
-            preserveNullAndEmptyArrays: true, // Mantiene el documento aún si no hay oferta ganadora
-          },
-        },
-        // Proyección de los campos que deseas devolver (todos los campos del requerimiento)
-        {
-          $project: {
-            _id: 1,
-            name: 1,
-            description: 1,
-            categoryID: 1,
-            cityID: 1,
-            budget: 1,
-            currencyID: 1,
-            payment_methodID: 1,
-            completion_date: 1,
-            submission_dateID: 1,
-            warranty: 1,
-            duration: 1,
-            allowed_bidersID: 1,
-            entityID: 1,
-            subUserEmail: 1,
-            userID: 1,
-            email: 1,
-            publish_date: 1,
-            stateID: 1,
-            uid: 1,
-            createdAt: 1,
-            updatedAt: 1,
-            number_offers: 1,
-            images: 1,
-            files: 1,
-            winOffer: {
-              uid: 1,
-              userID: 1,
-              entityID: 1,
-            }, // Aquí incluimos todos los campos de la oferta ganadora
-          },
-        },
-      ];*/
+
       const pipeline = [
         // Buscar el requerimiento por su userID
         {
@@ -509,7 +439,7 @@ export class RequerimentService {
         // Relacionar la colección 'OffersProducts' (ofertas) con la colección de requerimientos (Products)
         {
           $lookup: {
-            from: "offersproducts", // Nombre de la colección de ofertas
+            from: "offersliquidations", // Nombre de la colección de ofertas
             localField: "winOffer.uid", // El campo en los requerimientos (Products) que relacionamos (winOffer.uid)
             foreignField: "uid", // El campo en las ofertas (Offers) con el que se relaciona (uid de la oferta)
             as: "winOffer", // El alias para la relación, esto almacenará la oferta ganadora relacionada
@@ -567,8 +497,7 @@ export class RequerimentService {
             payment_methodID: 1,
             completion_date: 1,
             submission_dateID: 1,
-            warranty: 1,
-            duration: 1,
+            state_article: 1,
             allowed_bidersID: 1,
             entityID: 1,
             subUserEmail: 1,
@@ -592,7 +521,7 @@ export class RequerimentService {
         },
       ];
 
-      const result = await ProductModel.aggregate([
+      const result = await LiquidationModel.aggregate([
         ...pipeline,
         {
           $sort: {
@@ -647,7 +576,7 @@ export class RequerimentService {
       //  console.log(sortedResult);
 
       // Obtener el número total de documentos (sin paginación)
-      const totalData = await ProductModel.aggregate(pipeline);
+      const totalData = await LiquidationModel.aggregate(pipeline);
       const totalDocuments = totalData.length;
       return {
         success: true,
@@ -702,7 +631,7 @@ export class RequerimentService {
         // Relacionar la colección 'OffersProducts' (ofertas) con la colección de requerimientos (Products)
         {
           $lookup: {
-            from: "offersproducts", // Nombre de la colección de ofertas
+            from: "offersliquidations", // Nombre de la colección de ofertas
             localField: "winOffer.uid", // El campo en los requerimientos (Products) que relacionamos (winOffer.uid)
             foreignField: "uid", // El campo en las ofertas (Offers) con el que se relaciona (uid de la oferta)
             as: "winOffer", // El alias para la relación, esto almacenará la oferta ganadora relacionada
@@ -728,8 +657,7 @@ export class RequerimentService {
             payment_methodID: 1,
             completion_date: 1,
             submission_dateID: 1,
-            warranty: 1,
-            duration: 1,
+            state_article: 1,
             allowed_bidersID: 1,
             entityID: 1,
             subUserEmail: 1,
@@ -752,7 +680,7 @@ export class RequerimentService {
         },
       ];
 
-      const result = await ProductModel.aggregate([
+      const result = await LiquidationModel.aggregate([
         ...pipeline,
         {
           $sort: {
@@ -804,7 +732,7 @@ export class RequerimentService {
         resultData = resultWithCities;
       }
       // Obtener el número total de documentos (sin paginación)
-      const totalData = await ProductModel.aggregate(pipeline);
+      const totalData = await LiquidationModel.aggregate(pipeline);
       const totalDocuments = totalData.length;
 
       return {
@@ -834,7 +762,7 @@ export class RequerimentService {
   ) => {
     try {
       // Buscar y actualizar el requerimiento por su UID
-      const updatedRequeriment = await ProductModel.findOneAndUpdate(
+      const updatedRequeriment = await LiquidationModel.findOneAndUpdate(
         { uid }, // Usar un objeto de consulta para buscar por uid
         {
           // Solo se actualizarán los campos que están definidos en `data`
@@ -917,7 +845,7 @@ export class RequerimentService {
             };
           }
           if ((await offerData).success) {
-            const updatedProduct = await ProductModel.findOneAndUpdate(
+            const updatedLiquidation = await LiquidationModel.findOneAndUpdate(
               { uid: requerimentID },
               {
                 $set: {
@@ -928,7 +856,7 @@ export class RequerimentService {
               { new: true } // Devolver el documento actualizado
             );
 
-            if (!updatedProduct) {
+            if (!updatedLiquidation) {
               return {
                 success: false,
                 code: 403,
@@ -938,18 +866,17 @@ export class RequerimentService {
               };
             }
 
-            const purchaseOrder =
-              await PurchaseOrderService.CreatePurchaseOrder(
-                requerimentID,
-                offerID,
-                price_Filter,
-                deliveryTime_Filter,
-                location_Filter,
-                warranty_Filter
-              );
+            const saleOrder = await SaleOrderService.CreateSaleOrder(
+              requerimentID,
+              offerID,
+              price_Filter,
+              deliveryTime_Filter,
+              location_Filter,
+              warranty_Filter
+            );
 
-            if (!purchaseOrder.success) {
-              await ProductModel.findOneAndUpdate(
+            if (!saleOrder.success) {
+              await LiquidationModel.findOneAndUpdate(
                 { uid: requerimentID },
                 {
                   $set: {
@@ -963,7 +890,7 @@ export class RequerimentService {
                 success: false,
                 code: 409,
                 error: {
-                  msg: purchaseOrder.error,
+                  msg: saleOrder.error,
                 },
               };
             }
@@ -991,11 +918,11 @@ export class RequerimentService {
             return {
               success: true,
               code: 200,
-              data: updatedProduct,
+              data: updatedLiquidation,
               res: {
                 msg: "La oferta ganadora ha sido seleccionada y guardada exitosamente",
                 offerUID: updatedOffer.uid,
-                purchaseOrderUID: purchaseOrder.res?.uidPurchaseOrder,
+                saleOrderUID: saleOrder.res?.uidPurchaseOrder,
               },
             };
           } else {
@@ -1054,7 +981,7 @@ export class RequerimentService {
 
   static BasicRateData = async (requerimentID: string) => {
     try {
-      const result = await ProductModel.aggregate([
+      const result = await LiquidationModel.aggregate([
         {
           // Match para encontrar el producto con el requerimentID
           $match: { uid: requerimentID },
@@ -1117,23 +1044,23 @@ export class RequerimentService {
 
   static expired = async () => {
     try {
-      const products = await ProductModel.find({
+      const liquidations = await LiquidationModel.find({
         completion_date: { $lt: new Date() },
         stateID: 1,
       });
 
-      for (const product of products) {
-        product.stateID = 5;
-        await product.save(); // Guardar cada documento actualizado
+      for (const liquidation of liquidations) {
+        liquidation.stateID = 5;
+        await liquidation.save(); // Guardar cada documento actualizado
       }
 
       return {
         success: true,
         code: 200,
         res: {
-          msg: "Se han actualizado los productos expirados",
+          msg: "Se han actualizado las Liquidaciones expiradas",
           socketData: {
-            data: products,
+            data: liquidations,
           },
         },
       };
@@ -1150,7 +1077,7 @@ export class RequerimentService {
 
   static delete = async (requirementID: string) => {
     try {
-      const requirementData = await ProductModel.findOne({
+      const requirementData = await LiquidationModel.findOne({
         uid: requirementID,
         stateID: {
           $in: [
@@ -1182,7 +1109,7 @@ export class RequerimentService {
           }
         }
 
-        const updatedRequirement = await ProductModel.findOneAndUpdate(
+        const updatedRequirement = await LiquidationModel.findOneAndUpdate(
           { uid: requirementID },
           {
             $set: {
@@ -1190,6 +1117,21 @@ export class RequerimentService {
             },
           },
           { new: true }
+        );
+        //Eliminamos
+        await this.manageCount(
+          requirementData.entityID,
+          requirementData.userID,
+          "numDelete" + NameAPI.NAME + "s",
+          true
+        );
+
+        //Eliminamos
+        await this.manageCount(
+          requirementData.entityID,
+          requirementData.userID,
+          "num" + NameAPI.NAME + "s",
+          false
         );
 
         return {
@@ -1226,7 +1168,7 @@ export class RequerimentService {
   static republish = async (requirementID: string, completionDate: string) => {
     try {
       const offerUids: string[] = [];
-      const requirementData = await ProductModel.findOne({
+      const requirementData = await LiquidationModel.findOne({
         uid: requirementID,
       });
 
@@ -1252,7 +1194,7 @@ export class RequerimentService {
             );
           }
 
-          const updatedRequirement = await ProductModel.findOneAndUpdate(
+          const updatedRequirement = await LiquidationModel.findOneAndUpdate(
             { uid: requirementID },
             {
               $set: {
@@ -1308,13 +1250,14 @@ export class RequerimentService {
     score: number,
     comments?: string
   ) => {
-    let purchaseOrderUID;
+    let saleOrderUID;
     let requerimentUID;
     let offerUID;
     try {
-      const requerimentData = await ProductModel.findOne({
+      const requerimentData = await LiquidationModel.findOne({
         uid: requerimentID,
       });
+
       if (!requerimentData) {
         return {
           success: false,
@@ -1337,7 +1280,7 @@ export class RequerimentService {
 
       const offerID = requerimentData.winOffer.uid;
 
-      const purchaseOrderData = await PurchaseOrderModel.aggregate([
+      const saleOrderData = await SaleOrderModel.aggregate([
         {
           $match: {
             requerimentID: requerimentID, // Sustituye por el valor real
@@ -1348,8 +1291,8 @@ export class RequerimentService {
 
       const requestBody = {
         typeScore: "Provider", // Tipo de puntaje
-        uidEntity: purchaseOrderData?.[0].userProviderID, // ID de la empresa a ser evaluada
-        uidUser: purchaseOrderData?.[0].userClientID, // ID del usuario que evalua
+        uidEntity: saleOrderData?.[0].userProviderID, // ID de la empresa a ser evaluada
+        uidUser: saleOrderData?.[0].userClientID, // ID del usuario que evalua
         score: score, // Puntaje
         comments: comments, // Comentarios
       };
@@ -1371,14 +1314,14 @@ export class RequerimentService {
 
       // AQUI USAR LA FUNCION EN DISPUTA //
       if (
-        purchaseOrderData?.[0].scoreState?.scoreProvider &&
-        purchaseOrderData?.[0].scoreState?.deliveredProvider !== delivered
+        saleOrderData?.[0].scoreState?.scoreProvider &&
+        saleOrderData?.[0].scoreState?.deliveredProvider !== delivered
       ) {
-        purchaseOrderUID = (
-          await this.inDispute(purchaseOrderData?.[0].uid, PurchaseOrderModel)
+        saleOrderUID = (
+          await this.inDispute(saleOrderData?.[0].uid, SaleOrderModel)
         ).res?.uid;
-        requerimentUID = (await this.inDispute(requerimentID, ProductModel)).res
-          ?.uid;
+        requerimentUID = (await this.inDispute(requerimentID, LiquidationModel))
+          .res?.uid;
         offerUID = (await this.inDispute(offerID, OfferModel)).res?.uid;
 
         return {
@@ -1386,17 +1329,17 @@ export class RequerimentService {
           code: 200,
           res: {
             msg: "El proveedor ha reportado una discrepancia, por lo que el estado del proceso se ha marcado como EN DISPUTA.",
-            purchaseOrderUID,
+            saleOrderUID,
             requerimentUID,
             offerUID,
           },
         };
       } else {
         if (
-          purchaseOrderData?.[0].scoreState?.scoreProvider &&
-          purchaseOrderData?.[0].scoreState?.deliveredProvider === delivered
+          saleOrderData?.[0].scoreState?.scoreProvider &&
+          saleOrderData?.[0].scoreState?.deliveredProvider === delivered
         ) {
-          purchaseOrderUID = await PurchaseOrderModel.findOneAndUpdate(
+          saleOrderUID = await SaleOrderModel.findOneAndUpdate(
             {
               requerimentID: requerimentID,
               offerID: offerID,
@@ -1405,14 +1348,14 @@ export class RequerimentService {
               $set: {
                 "scoreState.scoreClient": true,
                 "scoreState.deliveredClient": delivered,
-                stateID: PurchaseOrderState.FINISHED,
+                stateID: SaleOrderState.FINISHED,
               },
             },
             { new: true } // Devuelve el documento actualizado
           );
-          purchaseOrderUID = purchaseOrderUID?.uid;
+          saleOrderUID = saleOrderUID?.uid;
         } else {
-          purchaseOrderUID = await PurchaseOrderModel.findOneAndUpdate(
+          saleOrderUID = await SaleOrderModel.findOneAndUpdate(
             {
               requerimentID: requerimentID,
               offerID: offerID,
@@ -1421,15 +1364,15 @@ export class RequerimentService {
               $set: {
                 "scoreState.scoreClient": true,
                 "scoreState.deliveredClient": delivered,
-                stateID: PurchaseOrderState.PENDING,
+                stateID: SaleOrderState.PENDING,
               },
             },
             { new: true } // Devuelve el documento actualizado
           );
-          purchaseOrderUID = purchaseOrderUID?.uid;
+          saleOrderUID = saleOrderUID?.uid;
         }
 
-        requerimentUID = await ProductModel.findOneAndUpdate(
+        requerimentUID = await LiquidationModel.findOneAndUpdate(
           {
             uid: requerimentID,
           },
@@ -1447,7 +1390,7 @@ export class RequerimentService {
           code: 200,
           res: {
             msg: "Se ha culminado correctamente el Requerimiento",
-            purchaseOrderUID: purchaseOrderUID,
+            saleOrderUID: saleOrderUID,
             requerimentUID: requerimentUID,
             offerUID: offerUID,
           },
@@ -1469,7 +1412,7 @@ export class RequerimentService {
     try {
       const updatedDocument = await Model.findOneAndUpdate(
         { uid },
-        { $set: { stateID: PurchaseOrderState.DISPUTE } },
+        { $set: { stateID: SaleOrderState.DISPUTE } },
         { new: true } // Devuelve el documento actualizado
       );
 
@@ -1510,7 +1453,7 @@ export class RequerimentService {
       let purchaseOrderUid;
       let requerimentUid;
       let selectOfferUid;
-      const resultData = await ProductModel.find({ uid: uid });
+      const resultData = await LiquidationModel.find({ uid: uid });
       if (resultData[0]?.stateID === RequirementState.CANCELED) {
         return {
           success: false,
@@ -1523,19 +1466,19 @@ export class RequerimentService {
       if (resultData[0]?.stateID === RequirementState.SELECTED) {
         const OfferID = resultData[0]?.winOffer.uid;
         const offerData = (await OfferService.GetDetailOffer(OfferID)).data;
-        const purchaseOrderData = await PurchaseOrderModel.find({
+        const saleOrderData = await SaleOrderModel.find({
           requerimentID: uid, // Filtro por requerimentID
           offerID: OfferID, // Filtro por offerID
         });
 
-        if (purchaseOrderData[0].stateID === PurchaseOrderState.CANCELED) {
+        if (saleOrderData[0].stateID === SaleOrderState.CANCELED) {
           offerUids = await this.changeStateOffer(
             uid,
             OfferState.CANCELED,
             true
           );
           requerimentUid = await this.changeStateID(
-            ProductModel,
+            LiquidationModel,
             uid,
             RequirementState.CANCELED
           );
@@ -1548,7 +1491,7 @@ export class RequerimentService {
             },
           };
         } else if (
-          purchaseOrderData[0].scoreState?.scoreProvider === true &&
+          saleOrderData[0].scoreState?.scoreProvider === true &&
           offerData?.[0].stateID === OfferState.FINISHED
         ) {
           return {
@@ -1559,13 +1502,13 @@ export class RequerimentService {
             },
           };
         } else {
-          await PurchaseOrderModel.findOneAndUpdate(
-            { uid: purchaseOrderData[0].uid }, // Filtro para buscar por uid
+          await SaleOrderModel.findOneAndUpdate(
+            { uid: saleOrderData[0].uid }, // Filtro para buscar por uid
             {
               canceledByCreator: true,
               reasonCancellation: reason,
               cancellationDate: new Date(),
-              stateID: PurchaseOrderState.CANCELED,
+              stateID: SaleOrderState.CANCELED,
             }, // Campos a actualizar
             { new: true } // Devuelve el documento actualizado
           );
@@ -1586,7 +1529,7 @@ export class RequerimentService {
         );
 
         requerimentUid = await this.changeStateID(
-          ProductModel,
+          LiquidationModel,
           uid,
           RequirementState.CANCELED
         );
@@ -1599,7 +1542,7 @@ export class RequerimentService {
             offerUids: offerUids,
             requerimentUid: requerimentUid,
             selectOfferUid: selectOfferUid,
-            purchaseOrderUid: purchaseOrderData[0].uid,
+            saleOrderUid: saleOrderData[0].uid,
           },
         };
       } else {
@@ -1609,7 +1552,7 @@ export class RequerimentService {
           false
         );
         requerimentUid = await this.changeStateID(
-          ProductModel,
+          LiquidationModel,
           uid,
           RequirementState.CANCELED
         );
@@ -1700,11 +1643,11 @@ export class RequerimentService {
   ) => {
     try {
       // Buscar y actualizar el requerimiento por su UID
-      const product = await ProductModel.findOne({ uid }); // Encuentra el producto
+      const liquidation = await LiquidationModel.findOne({ uid }); // Encuentra el producto
 
-      if (product) {
+      if (liquidation) {
         // Actualiza el documento
-        const updatedProduct = await ProductModel.findOneAndUpdate(
+        const updatedLiquidation = await LiquidationModel.findOneAndUpdate(
           { uid }, // Busca por uid
           {
             $inc: { number_offers: increase ? 1 : -1 }, // Suma o resta 1
@@ -1716,7 +1659,7 @@ export class RequerimentService {
           .gt(0); // Asegura que solo reste si es mayor a 0
 
         // Si no se encuentra el requerimiento o no se puede actualizar
-        if (!updatedProduct) {
+        if (!updatedLiquidation) {
           return {
             success: false,
             code: 404,
@@ -1732,7 +1675,7 @@ export class RequerimentService {
           code: 200,
           res: {
             msg: "El requerimiento ha sido actualizado correctamente",
-            data: updatedProduct,
+            data: updatedLiquidation,
           },
         };
       } else {
@@ -1834,7 +1777,7 @@ export class RequerimentService {
       // Primero intentamos hacer la búsqueda en MongoDB
       const skip = (page - 1) * pageSize;
 
-      let results = await ProductModel.find(searchConditions, projection)
+      let results = await LiquidationModel.find(searchConditions, projection)
         .skip(skip)
         .limit(pageSize)
         .sort({ publish_date: -1 });
@@ -1846,7 +1789,7 @@ export class RequerimentService {
         delete searchConditionsWithoutKeyWords.$or; // Quitamos la condición que filtra por palabras clave
 
         // Obtener todos los registros sin aplicar el filtro de palabras clave
-        const allResults = await ProductModel.find(
+        const allResults = await LiquidationModel.find(
           searchConditionsWithoutKeyWords,
           projection
         );
@@ -1872,7 +1815,7 @@ export class RequerimentService {
         results = results.slice(start, start + pageSize);
       } else {
         // Si encontramos resultados en MongoDB, el total es la cantidad de documentos encontrados
-        total = await ProductModel.countDocuments(searchConditions);
+        total = await LiquidationModel.countDocuments(searchConditions);
       }
 
       return {
@@ -2004,8 +1947,7 @@ export class RequerimentService {
             payment_methodID: 1,
             completion_date: 1,
             submission_dateID: 1,
-            warranty: 1,
-            duration: 1,
+            state_article: 1,
             allowed_bidersID: 1,
             entityID: 1,
             subUserEmail: 1,
@@ -2032,7 +1974,7 @@ export class RequerimentService {
 
       // Primero intentamos hacer la búsqueda en MongoDB
       const skip = (page - 1) * pageSize;
-      let results = await ProductModel.aggregate(pipeline)
+      let results = await LiquidationModel.aggregate(pipeline)
         .sort({ [fieldName]: order })
         .skip(skip)
         .limit(pageSize)
@@ -2059,7 +2001,7 @@ export class RequerimentService {
           .filter((stage) => stage !== null);
 
         // Ejecutar el pipeline sin el filtro de palabras clave
-        const allResults = await ProductModel.aggregate(
+        const allResults = await LiquidationModel.aggregate(
           pipelineWithoutKeyWords
         );
 
@@ -2100,7 +2042,7 @@ export class RequerimentService {
         results = results.slice(start, start + pageSize);
       } else {
         // Si encontramos resultados en MongoDB, el total es la cantidad de documentos encontrados
-        const resultData = await ProductModel.aggregate(pipeline);
+        const resultData = await LiquidationModel.aggregate(pipeline);
         total = resultData.length;
       }
 

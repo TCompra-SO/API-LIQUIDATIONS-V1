@@ -1,10 +1,10 @@
 import mongoose, { Schema } from "mongoose";
 import ShortUniqueId from "short-unique-id";
-import { PurchaseOrderI } from "../interfaces/purchaseOrder.interface";
+import { SaleOrderI } from "../interfaces/saleOrder.interface";
 
 const uid = new ShortUniqueId({ length: 20 });
 
-const PurchaseOrderSchema = new Schema<PurchaseOrderI>({
+const SaleOrderSchema = new Schema<SaleOrderI>({
   uid: {
     type: String,
     required: true,
@@ -165,9 +165,9 @@ const PurchaseOrderSchema = new Schema<PurchaseOrderI>({
   },
 });
 
-const PurchaseOrderModel = mongoose.model<PurchaseOrderI>(
-  "PurchaseOrderProducts",
-  PurchaseOrderSchema
+const SaleOrderModel = mongoose.model<SaleOrderI>(
+  "SaleOrderLiquidations",
+  SaleOrderSchema
 );
 
-export default PurchaseOrderModel;
+export default SaleOrderModel;

@@ -3,7 +3,7 @@ import path from "path";
 import fs from "fs";
 import { Request, Response } from "express";
 import { ImageService } from "../services/imageService";
-import ProductModel from "../models/productModel";
+import ProductModel from "../models/liquidationModel";
 
 const uploadDir = path.join(__dirname, "../uploads");
 if (!fs.existsSync(uploadDir)) {
@@ -77,7 +77,7 @@ export const uploadImagesRequeriment = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Error al cargar las imágenes", error });
   }
 };
-
+/*no se suben imagenes
 export const uploadImagesOffer = async (req: Request, res: Response) => {
   try {
     const { uid } = req.body;
@@ -116,3 +116,4 @@ export const uploadImagesOffer = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Error al cargar las imágenes", error });
   }
 };
+*/

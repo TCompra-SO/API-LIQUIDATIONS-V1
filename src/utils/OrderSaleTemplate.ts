@@ -1,8 +1,6 @@
-import { PurchaseOrderI } from "../interfaces/purchaseOrder.interface";
+import { SaleOrderI } from "../interfaces/saleOrder.interface";
 
-export const OrderPurchaseTemplate = async (
-  data: Omit<PurchaseOrderI, "uid">
-) => {
+export const OrderSaleTemplate = async (data: Omit<SaleOrderI, "uid">) => {
   const convertDate = (date: Date) => {
     const day = String(date.getDate()).padStart(2, "0");
     const month = String(date.getMonth() + 1).padStart(2, "0"); // Los meses comienzan desde 0
@@ -36,7 +34,7 @@ export const OrderPurchaseTemplate = async (
               <td style="background:#f7e9f1;color:#510839;padding:30px;text-align:center">
                   <img src="https://res.cloudinary.com/dlxlveta2/image/upload/v1732549506/orden-compra_qgnmwz.png" style="width:44px" class="CToWUd" data-bit="iit" jslog="138226; u014N:xr6bB; 53:WzAsMl0.">
                   
-                    <h1 style="margin:0;font-size:30px;line-height:1">Orden de Compra</h1>
+                    <h1 style="margin:0;font-size:30px;line-height:1">Orden de Venta</h1>
                   
               </td>
           </tr>
@@ -46,7 +44,7 @@ export const OrderPurchaseTemplate = async (
                   <table cellpadding="0" cellspacing="0" width="100%" style="margin-bottom:10px">
                     <tbody><tr>
                       
-                        <td><span style="color:#000000"><b>Felicidades,</b> su orden de compra se generó exitosamente.</span></td>
+                        <td><span style="color:#000000"><b>Felicidades,</b> su orden de venta se generó exitosamente.</span></td>
                       
                     </tr>
                   </tbody></table>
@@ -135,9 +133,9 @@ export const OrderPurchaseTemplate = async (
                               }: </b><span style="color:#000000">${
     data.documentProvider
   }</span><br>
-                              <b style="color:#510839">Correo:</b> <a href="mailto:tcompraperu@gmail.com" target="_blank">${
+                              <b style="color:#510839">Correo:</b> <a href="mailto:${
                                 data.emailProvider
-                              }</a>
+                              }" target="_blank">${data.emailProvider}</a>
                               
                                ${
                                  data.nameSubUserProvider !==

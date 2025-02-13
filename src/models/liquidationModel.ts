@@ -6,7 +6,7 @@ import { string } from "joi";
 
 const uid = new ShortUniqueId({ length: 20 });
 
-const ProductSchema = new Schema<RequerimentI>(
+const LiquidationSchema = new Schema<RequerimentI>(
   {
     uid: {
       type: String,
@@ -51,11 +51,7 @@ const ProductSchema = new Schema<RequerimentI>(
       type: Number,
       required: true,
     },
-    warranty: {
-      type: Number,
-      required: false,
-    },
-    durationID: {
+    state_article: {
       type: Number,
       required: false,
     },
@@ -110,5 +106,8 @@ const ProductSchema = new Schema<RequerimentI>(
   }
 );
 
-const ProductModel = mongoose.model<RequerimentI>("Products", ProductSchema);
-export default ProductModel;
+const LiquidationModel = mongoose.model<RequerimentI>(
+  "Liquidations",
+  LiquidationSchema
+);
+export default LiquidationModel;

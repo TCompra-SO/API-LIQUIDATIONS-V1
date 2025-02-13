@@ -2,20 +2,21 @@ import axios from "axios";
 import { OfferI } from "../interfaces/offer.interface";
 import { OfferModel } from "../models/offerModel";
 import { RequerimentService } from "./requerimentService";
-import ProductModel from "../models/productModel";
+import LiquidationModel from "../models/liquidationModel";
 import Fuse from "fuse.js";
 import { PipelineStage, SortOrder } from "mongoose";
 import {
+  NameAPI,
   OfferState,
   OrderType,
-  PurchaseOrderState,
+  SaleOrderState,
   RequirementState,
   TypeEntity,
 } from "../utils/Types";
-import PurchaseOrderModel from "../models/purchaseOrder";
+import SaleOrderModel from "../models/saleOrder";
 import { Console, error } from "node:console";
 import { TypeUser } from "../utils/Types";
-import { TypeRequeriment } from "../interfaces/purchaseOrder.interface";
+import { TypeRequeriment } from "../interfaces/saleOrder.interface";
 import { object } from "joi";
 let API_USER = process.env.API_USER;
 export class OfferService {
@@ -27,12 +28,8 @@ export class OfferService {
       cityID,
       deliveryTimeID,
       currencyID,
-      warranty,
-      timeMeasurementID,
-      support,
       budget,
       includesIGV,
-      includesDelivery,
       requerimentID,
       userID,
     } = data;
@@ -80,12 +77,8 @@ export class OfferService {
         cityID,
         deliveryTimeID,
         currencyID,
-        warranty,
-        timeMeasurementID,
-        support,
         budget,
         includesIGV,
-        includesDelivery,
         requerimentID,
         userID: userID,
         entityID: entityID,
@@ -147,7 +140,8 @@ export class OfferService {
             RequerimentService.manageCount(
               entityID,
               userID,
-              "numOffersProducts"
+              "numOffers" + NameAPI.NAME + "s",
+              true
             );
           } else {
             return {
@@ -235,7 +229,7 @@ export class OfferService {
         // Fase de lookup para unir la colección Requeriment
         {
           $lookup: {
-            from: "products", // Nombre de la colección de requerimientos, asegúrate de que sea correcto
+            from: "liquidations", // Nombre de la colección de requerimientos, asegúrate de que sea correcto
             localField: "requerimentID", // Campo de la oferta
             foreignField: "uid", // Campo del requerimiento
             as: "requerimentDetails", // Nombre del campo que contendrá los detalles del requerimiento
@@ -288,12 +282,8 @@ export class OfferService {
             cityID: 1,
             deliveryTimeID: 1,
             currencyID: 1,
-            warranty: 1,
-            timeMeasurementID: 1,
-            support: 1,
             budget: 1,
             includesIGV: 1,
-            includesDelivery: 1,
             requerimentID: 1,
             stateID: 1,
             publishDate: 1,
@@ -304,6 +294,7 @@ export class OfferService {
             canceledByCreator: 1,
             selectionDate: 1,
             delivered: 1,
+            review: 1,
             requerimentTitle: {
               $arrayElemAt: ["$requerimentDetails.name", 0],
             }, // Extrae el campo 'name' del primer requerimiento encontrado
@@ -352,7 +343,7 @@ export class OfferService {
         // Fase de lookup para unir la colección de productos
         {
           $lookup: {
-            from: "products", // Nombre de la colección de productos (ProductModel)
+            from: "liquidations", // Nombre de la colección de productos (ProductModel)
             localField: "requerimentID", // Campo en OfferModel
             foreignField: "uid", // Campo en ProductModel que coincide
             as: "requerimentDetails", // Nombre del campo que contendrá los detalles del producto relacionado
@@ -371,9 +362,6 @@ export class OfferService {
             cityID: 1,
             deliveryTimeID: 1,
             currencyID: 1,
-            warranty: 1,
-            timeMeasurementID: 1,
-            support: 1,
             budget: 1,
             includesIGV: 1,
             includesDelivery: 1,
@@ -387,6 +375,7 @@ export class OfferService {
             canceledByCreator: 1,
             selectionDate: 1,
             delivered: 1,
+            review: 1,
 
             // Extrae el campo 'name' de `ProductModel` (en `requerimentDetails`) como `requerimentTitle`
             requerimentTitle: {
@@ -466,7 +455,7 @@ export class OfferService {
         },
         {
           $lookup: {
-            from: "products", // Nombre de la colección de productos (ProductModel)
+            from: "liquidations", // Nombre de la colección de productos (ProductModel)
             localField: "requerimentID", // Campo en OfferModel
             foreignField: "uid", // Campo en ProductModel que coincide
             as: "requerimentDetails", // Nombre del campo que contendrá los detalles del producto relacionado
@@ -485,9 +474,6 @@ export class OfferService {
             cityID: 1,
             deliveryTimeID: 1,
             currencyID: 1,
-            warranty: 1,
-            timeMeasurementID: 1,
-            support: 1,
             budget: 1,
             includesIGV: 1,
             includesDelivery: 1,
@@ -501,6 +487,7 @@ export class OfferService {
             canceledByCreator: 1,
             selectionDate: 1,
             delivered: 1,
+            review: 1,
 
             // Extrae el campo 'name' de `ProductModel` (en `requerimentDetails`) como `requerimentTitle`
             requerimentTitle: {
@@ -586,9 +573,6 @@ export class OfferService {
             cityID: 1,
             deliveryTimeID: 1,
             currencyID: 1,
-            warranty: 1,
-            timeMeasurementID: 1,
-            support: 1,
             budget: 1,
             includesIGV: 1,
             includesDelivery: 1,
@@ -602,6 +586,7 @@ export class OfferService {
             canceledByCreator: 1,
             selectionDate: 1,
             delivered: 1,
+            review: 1,
 
             // Extrae el campo 'name' de `ProductModel` (en `requerimentDetails`) como `requerimentTitle`
             requerimentTitle: {
@@ -668,7 +653,7 @@ export class OfferService {
       },
       {
         $lookup: {
-          from: "products", // Nombre de la colección de productos (ProductModel)
+          from: "liquidations", // Nombre de la colección de productos (ProductModel)
           localField: "requerimentID", // Campo en OfferModel
           foreignField: "uid", // Campo en ProductModel que coincide
           as: "requerimentDetails", // Nombre del campo que contendrá los detalles del producto relacionado
@@ -687,9 +672,6 @@ export class OfferService {
           cityID: 1,
           deliveryTimeID: 1,
           currencyID: 1,
-          warranty: 1,
-          timeMeasurementID: 1,
-          support: 1,
           budget: 1,
           includesIGV: 1,
           includesDelivery: 1,
@@ -703,6 +685,7 @@ export class OfferService {
           canceledByCreator: 1,
           selectionDate: 1,
           delivered: 1,
+          review: 1,
 
           // Extrae el campo 'name' de `ProductModel` (en `requerimentDetails`) como `requerimentTitle`
           requerimentTitle: {
@@ -860,7 +843,20 @@ export class OfferService {
         updatedOffer.requerimentID,
         false
       );
-
+      //actualizamos contador
+      await RequerimentService.manageCount(
+        updatedOffer.entityID,
+        updatedOffer.userID,
+        "numDeleteOffers" + NameAPI.NAME + "s",
+        true
+      );
+      //restamos
+      await RequerimentService.manageCount(
+        updatedOffer.entityID,
+        updatedOffer.userID,
+        "numOffers" + NameAPI.NAME + "s",
+        false
+      );
       return {
         success: true,
         code: 200,
@@ -890,7 +886,7 @@ export class OfferService {
     try {
       let offerUid;
       let requerimentUid;
-      let purchaseOrderUid;
+      let saleOrderUid;
       const offerData = await OfferModel.findOne({
         uid: offerID,
       });
@@ -914,7 +910,7 @@ export class OfferService {
         };
       }
 
-      const purchaseOrderData = await PurchaseOrderModel.aggregate([
+      const saleOrderData = await SaleOrderModel.aggregate([
         {
           $match: {
             offerID: offerID, // Sustituye por el valor real
@@ -924,8 +920,8 @@ export class OfferService {
       // Corregir bien esto solo cambie CLIENT
       const requestBody = {
         typeScore: "Client", // Tipo de puntaje
-        uidEntity: purchaseOrderData?.[0].userClientID, // ID de la empresa a ser evaluada
-        uidUser: purchaseOrderData?.[0].userProviderID, // ID del usuario que evalua
+        uidEntity: saleOrderData?.[0].userClientID, // ID de la empresa a ser evaluada
+        uidUser: saleOrderData?.[0].userProviderID, // ID del usuario que evalua
         score: score, // Puntaje
         comments: comments, // Comentarios
       };
@@ -944,16 +940,16 @@ export class OfferService {
           },
         };
       }
-      const requerimentID = purchaseOrderData?.[0].requerimentID;
+      const requerimentID = saleOrderData?.[0].requerimentID;
       // AQUI USAR LA FUNCION EN DISPUTA //
       if (
-        purchaseOrderData?.[0].scoreState?.scoreClient &&
-        purchaseOrderData?.[0].scoreState?.deliveredClient !== delivered
+        saleOrderData?.[0].scoreState?.scoreClient &&
+        saleOrderData?.[0].scoreState?.deliveredClient !== delivered
       ) {
-        purchaseOrderUid = (
-          await this.inDispute(purchaseOrderData?.[0].uid, PurchaseOrderModel)
+        saleOrderUid = (
+          await this.inDispute(saleOrderData?.[0].uid, SaleOrderModel)
         ).uid;
-        requerimentUid = (await this.inDispute(requerimentID, ProductModel))
+        requerimentUid = (await this.inDispute(requerimentID, LiquidationModel))
           .uid;
         offerUid = (await this.inDispute(offerID, OfferModel)).uid;
 
@@ -975,15 +971,15 @@ export class OfferService {
             msg: "El cliente ha reportado una discrepancia, por lo tanto el estado del proceso se ha marcado como EN DISPUTA.",
             offerUid,
             requerimentUid,
-            purchaseOrderUid,
+            saleOrderUid,
           },
         };
       } else {
         if (
-          purchaseOrderData?.[0].scoreState?.scoreClient &&
-          purchaseOrderData?.[0].scoreState?.deliveredClient === delivered
+          saleOrderData?.[0].scoreState?.scoreClient &&
+          saleOrderData?.[0].scoreState?.deliveredClient === delivered
         ) {
-          purchaseOrderUid = await PurchaseOrderModel.findOneAndUpdate(
+          saleOrderUid = await SaleOrderModel.findOneAndUpdate(
             {
               requerimentID: requerimentID,
               offerID: offerID,
@@ -992,14 +988,14 @@ export class OfferService {
               $set: {
                 "scoreState.scoreProvider": true,
                 "scoreState.deliveredProvider": delivered,
-                stateID: PurchaseOrderState.FINISHED,
+                stateID: SaleOrderState.FINISHED,
               },
             },
             { new: true } // Devuelve el documento actualizado
           );
-          purchaseOrderUid = purchaseOrderUid?.uid;
+          saleOrderUid = saleOrderUid?.uid;
         } else {
-          purchaseOrderUid = await PurchaseOrderModel.findOneAndUpdate(
+          saleOrderUid = await SaleOrderModel.findOneAndUpdate(
             {
               requerimentID: requerimentID,
               offerID: offerID,
@@ -1008,12 +1004,12 @@ export class OfferService {
               $set: {
                 "scoreState.scoreProvider": true,
                 "scoreState.deliveredProvider": delivered,
-                stateID: PurchaseOrderState.PENDING,
+                stateID: SaleOrderState.PENDING,
               },
             },
             { new: true } // Devuelve el documento actualizado
           );
-          purchaseOrderUid = purchaseOrderUid?.uid;
+          saleOrderUid = saleOrderUid?.uid;
         }
 
         offerUid = await OfferModel.findOneAndUpdate(
@@ -1036,7 +1032,7 @@ export class OfferService {
             msg: "Se ha culminado correctamente la Oferta",
             offerUid,
             requerimentUid,
-            purchaseOrderUid,
+            saleOrderUid,
           },
         };
       }
@@ -1056,7 +1052,7 @@ export class OfferService {
     try {
       const updateResult = await Model.updateOne(
         { uid },
-        { $set: { stateID: PurchaseOrderState.DISPUTE } }
+        { $set: { stateID: SaleOrderState.DISPUTE } }
       );
 
       // Verificar si se actualizó algún documento
@@ -1106,7 +1102,7 @@ export class OfferService {
         typeUser = userData.data.data[0].typeEntity;
         entityID = userData.data.data[0].uid;
       }
-      const requerimentData = await ProductModel.aggregate([
+      const requerimentData = await LiquidationModel.aggregate([
         {
           $match: {
             entityID: entityID,
@@ -1215,9 +1211,9 @@ export class OfferService {
     try {
       const offerData = await this.GetDetailOffer(offerID);
       const stateID = offerData.data?.[0].stateID;
-      const purchaseOrderData = await PurchaseOrderModel.findOne({
+      const purchaseOrderData = await SaleOrderModel.findOne({
         offerID: offerID,
-        stateID: PurchaseOrderState.PENDING,
+        stateID: SaleOrderState.PENDING,
       });
       const requerimentID = purchaseOrderData?.requerimentID;
 
@@ -1231,7 +1227,7 @@ export class OfferService {
         };
       } else if (
         stateID === OfferState.WINNER ||
-        purchaseOrderData?.stateID === PurchaseOrderState.PENDING
+        purchaseOrderData?.stateID === SaleOrderState.PENDING
       ) {
         await OfferModel.updateOne(
           { uid: offerID }, // Busca el documento por el campo `uid`
@@ -1242,20 +1238,20 @@ export class OfferService {
             },
           }
         );
-        await PurchaseOrderModel.updateOne(
+        await SaleOrderModel.updateOne(
           {
             uid: purchaseOrderData?.uid,
           },
           {
             $set: {
-              stateID: PurchaseOrderState.CANCELED,
+              stateID: SaleOrderState.CANCELED,
               canceledByCreator: false,
               reasonCancellation: reason,
             },
           }
         );
 
-        await ProductModel.updateOne(
+        await LiquidationModel.updateOne(
           { uid: requerimentID },
           {
             $set: {
@@ -1348,7 +1344,7 @@ export class OfferService {
       const pipeline: PipelineStage[] = [
         {
           $lookup: {
-            from: "products", // Nombre de la colección de productos (ProductModel)
+            from: "liquidations", // Nombre de la colección de productos (ProductModel)
             localField: "requerimentID", // Campo en OfferModel
             foreignField: "uid", // Campo en ProductModel que coincide
             as: "requerimentDetails", // Nombre del campo que contendrá los detalles del producto relacionado
@@ -1412,9 +1408,6 @@ export class OfferService {
             cityID: 1,
             deliveryTimeID: 1,
             currencyID: 1,
-            warranty: 1,
-            timeMeasurementID: 1,
-            support: 1,
             budget: 1,
             includesIGV: 1,
             includesDelivery: 1,
@@ -1428,6 +1421,7 @@ export class OfferService {
             canceledByCreator: 1,
             selectionDate: 1,
             delivered: 1,
+            review: 1,
 
             // Extrae el campo 'name' de `ProductModel` (en `requerimentDetails`) como `requerimentTitle`
             requerimentTitle: {

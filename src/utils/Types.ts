@@ -18,7 +18,7 @@ export enum OfferState {
   ELIMINATED = 7,
 }
 
-export enum PurchaseOrderState {
+export enum SaleOrderState {
   PENDING = 1,
   CANCELED = 2,
   FINISHED = 3,
@@ -41,11 +41,16 @@ export enum OrderType {
   DESC = 2,
 }
 
+export enum Usage {
+  NEW = 0,
+  USED = 1,
+}
+
 export enum TypeSocket {
   CREATE = 0,
   UPDATE = 1,
 }
 
 export enum NameAPI {
-  NAME = "Product",
+  NAME = "Liquidation",
 }

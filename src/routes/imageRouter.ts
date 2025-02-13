@@ -1,7 +1,7 @@
 import { Router } from "express";
 import {
   upload,
-  uploadImagesOffer,
+  // uploadImagesOffer,
   uploadImagesRequeriment,
 } from "../controllers/imageController";
 export class ImageRouter {
@@ -16,7 +16,7 @@ export class ImageRouter {
       uploadImagesRequeriment
     );
 
-    this.router.post("/uploadImagesOffer", upload, uploadImagesOffer);
+    // this.router.post("/uploadImagesOffer", upload, uploadImagesOffer);
   }
 
   static getRouter(): Router {

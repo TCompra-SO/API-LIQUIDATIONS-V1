@@ -82,7 +82,7 @@ export const uploadDocumentsRequeriment = async (
     res.status(500).json({ message: "Error al cargar los documentos", error });
   }
 };
-
+/* no se sube documentos para ofertas
 export const uploadDocumentsOffer = async (req: Request, res: Response) => {
   try {
     const { uid } = req.body;
@@ -121,3 +121,4 @@ export const uploadDocumentsOffer = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Error al cargar los documentos", error });
   }
 };
+*/
