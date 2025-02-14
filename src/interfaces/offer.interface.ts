@@ -7,7 +7,7 @@ export interface OfferI {
   deliveryTimeID: number;
   currencyID: number;
   budget: number;
-  includesIGV: boolean;
+  includesIGV?: boolean;
   //includesDelivery: boolean;
   requerimentID: string;
   stateID: number;

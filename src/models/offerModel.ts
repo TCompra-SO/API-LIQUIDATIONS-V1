@@ -48,7 +48,7 @@ const OfferSchema = new Schema<OfferI>({
   },
   includesIGV: {
     type: Boolean,
-    required: true,
+    required: false,
   },
   requerimentID: {
     type: String,

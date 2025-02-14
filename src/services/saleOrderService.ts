@@ -126,7 +126,7 @@ export class SaleOrderService {
       }
 
       const newSaleOrder: Omit<SaleOrderI, "uid"> = {
-        type: TypeRequeriment.PRODUCTS,
+        type: TypeRequeriment.LIQUIDATIONS,
         userClientID: userClientID,
         userNameClient: (await offerBasicData).data?.[0].userName,
         addressClient: (await baseClientData).data.data?.address,

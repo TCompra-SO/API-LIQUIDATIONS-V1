@@ -38,7 +38,7 @@ const createRequerimentController = async (req: RequestExt, res: Response) => {
           key: dataPack.data[0].key,
           userId: dataPack.data[0].subUser,
         });
-
+        console.log(dataPack);
         // enviamos a la sala de usuarios
         const roomName = `roomRequeriment${
           NameAPI.NAME + responseUser.data?.entityID

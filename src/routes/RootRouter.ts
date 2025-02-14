@@ -3,7 +3,7 @@ import { RequerimentRouter } from "./requerimentRouter";
 import { OfferRouter } from "./offerRouter";
 import { ImageRouter } from "./imageRouter";
 import { FileRouter } from "./fileRouter";
-import { SaleOrderRouter } from "./purchaseOrderRouter";
+import { SaleOrderRouter } from "./saleOrderRouter";
 import { checkJwt } from "../middlewares/session";
 
 export class RootRouter {
