@@ -1257,6 +1257,9 @@ export class OfferService {
             $set: {
               stateID: RequirementState.PUBLISHED,
             },
+            $inc: {
+              number_offers: -1, // Resta 1 a numOffers
+            },
           }
         );
         return {

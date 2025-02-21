@@ -1186,7 +1186,8 @@ export class RequerimentService {
               offers.data.map(async (offer) => {
                 await OfferService.updateStateOffer(
                   offer.uid,
-                  OfferState.ACTIVE
+                  OfferState.ACTIVE,
+                  { canceledByCreator: { $ne: true } }
                 );
                 // Guardar la offer.uid en el array
                 offerUids.push(offer.uid);
