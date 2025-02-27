@@ -90,6 +90,10 @@ const OfferSchema = new Schema<OfferI>({
     type: Boolean,
     required: false,
   },
+  cancelRated: {
+    type: Boolean,
+    required: false,
+  },
 });
 
 // Exportamos el modelo
