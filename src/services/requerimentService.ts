@@ -22,6 +22,7 @@ import { TypeUser, TypeEntity } from "../utils/Types";
 import { profile } from "node:console";
 import { countries } from "../utils/Countries";
 import { RequerimentFrontI } from "./../middlewares/requeriment.front.Interface";
+import { TypeRequeriment } from "../interfaces/saleOrder.interface";
 
 let API_USER = process.env.API_USER;
 export class RequerimentService {
@@ -1296,21 +1297,26 @@ export class RequerimentService {
         uidUser: saleOrderData?.[0].userClientID, // ID del usuario que evalua
         score: score, // Puntaje
         comments: comments, // Comentarios
+        type: TypeRequeriment.LIQUIDATIONS,
       };
 
-      const resultData = await axios.post(
-        `${API_USER}score/registerScore/`,
-        requestBody
-      );
-
-      if (!resultData.data.success) {
-        return {
-          success: false,
-          code: 401,
-          error: {
-            msg: "No se ha podido calificar al usuario",
-          },
-        };
+      try {
+        const resultData = await axios.post(
+          `${API_USER}score/registerScore/`,
+          requestBody
+        );
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          return {
+            success: false,
+            code: 401,
+            error: {
+              msg: error.response?.data.msg,
+            },
+          };
+        } else {
+          console.error("Error desconocido:", error);
+        }
       }
 
       // AQUI USAR LA FUNCION EN DISPUTA //
