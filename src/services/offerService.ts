@@ -923,8 +923,10 @@ export class OfferService {
         typeScore: "Client", // Tipo de puntaje
         uidEntity: saleOrderData?.[0].userClientID, // ID de la empresa a ser evaluada
         uidUser: saleOrderData?.[0].userProviderID, // ID del usuario que evalua
+        offerId: saleOrderData?.[0].offerID,
         score: score, // Puntaje
         comments: comments, // Comentarios
+        type: TypeRequeriment.LIQUIDATIONS,
       };
 
       const resultData = await axios.post(
@@ -1252,17 +1254,6 @@ export class OfferService {
           }
         );
 
-        await LiquidationModel.updateOne(
-          { uid: requerimentID },
-          {
-            $set: {
-              stateID: RequirementState.PUBLISHED,
-            },
-            $inc: {
-              number_offers: -1, // Resta 1 a numOffers
-            },
-          }
-        );
         return {
           success: true,
           code: 200,
