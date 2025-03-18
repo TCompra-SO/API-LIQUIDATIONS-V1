@@ -8,6 +8,7 @@ import { transformOffersData } from "../middlewares/offer.front.interface";
 import { SaleOrderService } from "../services/saleOrderService";
 import { JwtPayload } from "jsonwebtoken";
 import { RequestExt } from "../interfaces/req-ext";
+import { Console } from "node:console";
 
 const createRequerimentController = async (req: RequestExt, res: Response) => {
   try {
@@ -542,10 +543,13 @@ const culminateController = async (req: RequestExt, res: Response) => {
     const { requerimentID, delivered, score, comments } = req.body;
 
     const { user } = req;
+
     const { uid: userID } = user as JwtPayload;
+
     let requerimentData = await RequerimentService.getRequerimentById(
       requerimentID
     );
+
     if (
       userID !== requerimentData.data?.[0].userID &&
       userID !== requerimentData.data?.[0].entityID

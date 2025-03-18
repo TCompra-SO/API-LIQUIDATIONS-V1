@@ -1296,6 +1296,7 @@ export class RequerimentService {
         uidEntity: saleOrderData?.[0].userProviderID, // ID de la empresa a ser evaluada
         uidUser: saleOrderData?.[0].userClientID, // ID del usuario que evalua
         score: score, // Puntaje
+        offerId: offerID,
         comments: comments, // Comentarios
         type: TypeRequeriment.LIQUIDATIONS,
       };
@@ -1924,6 +1925,19 @@ export class RequerimentService {
         },
         // Descomponer el array de compañías (si existe)
         { $unwind: { path: "$company", preserveNullAndEmptyArrays: true } },
+
+        // 🔹 Relacionar con 'offersproducts' usando solo winOffer.uid
+        {
+          $lookup: {
+            from: "offersliquidations", // Nombre de la colección
+            localField: "winOffer.uid", // Relación con la oferta ganadora
+            foreignField: "uid", // Clave en 'offersproducts'
+            as: "offerDetails",
+          },
+        },
+        {
+          $unwind: { path: "$offerDetails", preserveNullAndEmptyArrays: true },
+        },
         // Filtro inicial (searchConditions)
         {
           $match: {
@@ -1971,9 +1985,9 @@ export class RequerimentService {
             images: 1,
             files: 1,
             winOffer: {
-              uid: 1,
-              userID: 1,
-              entityID: 1,
+              uid: "$offerDetails.uid", // UID de la oferta ganadora
+              userID: "$offerDetails.userID", // Tomado de 'offersproducts'
+              entityID: "$offerDetails.entityID", // Tomado de 'offersproducts'
             }, // Aquí incluimos todos los campos de la oferta ganadora
             subUserName: { $ifNull: ["$profile.name", "$company.name"] },
             userName: { $ifNull: ["$company.name", "$profile.name"] },
