@@ -929,19 +929,23 @@ export class OfferService {
         type: TypeRequeriment.LIQUIDATIONS,
       };
 
-      const resultData = await axios.post(
-        `${API_USER}score/registerScore/`,
-        requestBody
-      );
-
-      if (!resultData.data.success) {
-        return {
-          success: false,
-          code: 401,
-          error: {
-            msg: "No se ha podido calificar al usuario",
-          },
-        };
+      try {
+        const resultData = await axios.post(
+          `${API_USER}score/registerScore/`,
+          requestBody
+        );
+      } catch (error) {
+        if (axios.isAxiosError(error)) {
+          return {
+            success: false,
+            code: 401,
+            error: {
+              msg: error.response?.data.msg,
+            },
+          };
+        } else {
+          console.error("Error desconocido:", error);
+        }
       }
       const requerimentID = saleOrderData?.[0].requerimentID;
       // AQUI USAR LA FUNCION EN DISPUTA //
@@ -1253,6 +1257,24 @@ export class OfferService {
             },
           }
         );
+
+        if (!canceledByCreator) {
+          const result = await LiquidationModel.findOneAndUpdate(
+            { uid: requerimentID },
+            { $set: { stateID: RequirementState.PUBLISHED } }, // Actualización
+            { new: true }
+          );
+
+          if (!result) {
+            return {
+              success: false,
+              code: 409,
+              error: {
+                msg: "No se encontró el requerimiento para actualizar",
+              },
+            };
+          }
+        }
 
         return {
           success: true,
