@@ -545,6 +545,7 @@ const culminateController = async (req: RequestExt, res: Response) => {
     const { user } = req;
 
     const { uid: userID } = user as JwtPayload;
+
     let requerimentData = await RequerimentService.getRequerimentById(
       requerimentID
     );

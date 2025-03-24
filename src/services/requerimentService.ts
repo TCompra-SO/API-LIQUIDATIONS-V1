@@ -1292,12 +1292,13 @@ export class RequerimentService {
           },
         },
       ]);
-      console.log(saleOrderData);
+
       const requestBody = {
         typeScore: "Provider", // Tipo de puntaje
         uidEntity: saleOrderData?.[0].userProviderID, // ID de la empresa a ser evaluada
         uidUser: saleOrderData?.[0].userClientID, // ID del usuario que evalua
         score: score, // Puntaje
+        offerId: offerID,
         comments: comments, // Comentarios
         type: TypeRequeriment.LIQUIDATIONS,
       };
@@ -1935,6 +1936,9 @@ export class RequerimentService {
             foreignField: "uid", // Clave en 'offersproducts'
             as: "offerDetails",
           },
+        },
+        {
+          $unwind: { path: "$offerDetails", preserveNullAndEmptyArrays: true },
         },
         // Filtro inicial (searchConditions)
         {
