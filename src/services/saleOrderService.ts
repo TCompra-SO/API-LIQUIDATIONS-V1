@@ -847,12 +847,11 @@ export class SaleOrderService {
       };
     }
   };
-
+  // AWQ
   static canceled = async (saleOrderID: string) => {
     try {
       const saleOrderData = await this.getSaleOrderID(saleOrderID);
       if (saleOrderData.data?.[0].stateID === SaleOrderState.PENDING) {
-        console.log(saleOrderData.data?.[0].stateID);
       }
       return {
         success: true,

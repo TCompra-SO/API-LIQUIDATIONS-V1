@@ -323,6 +323,7 @@ const culminateController = async (req: RequestExt, res: Response) => {
     let offerData = await OfferService.GetDetailOffer(offerID);
     const { user } = req; // Extraemos `user` y `body` de la request
     const { uid: userUID } = user as JwtPayload; // Obtenemos `uid` del usuario autenticado
+
     if (
       userUID !== offerData.data?.[0].userID &&
       userUID !== offerData.data?.[0].entityID
