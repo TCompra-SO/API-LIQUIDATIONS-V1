@@ -23,6 +23,7 @@ import { profile } from "node:console";
 import { countries } from "../utils/Countries";
 import { RequerimentFrontI } from "./../middlewares/requeriment.front.Interface";
 import { TypeRequeriment } from "../interfaces/saleOrder.interface";
+import { queueUpdate } from "../utils/CounterManager";
 
 let API_USER = process.env.API_USER;
 export class RequerimentService {
@@ -156,6 +157,7 @@ export class RequerimentService {
       if (entityID !== userID) {
         await updateCounter(userID, TypeEntity.SUBUSER); // Subusuario
         await updateCounter(entityID, TypeEntity.COMPANY); // Compañía
+        queueUpdate(entityID, userID, field, value);
       } else if (CompanyData) {
         await updateCounter(entityID, TypeEntity.COMPANY); // Compañía
       } else {
