@@ -38,7 +38,7 @@ export const saveNotificationMiddleware = (
             notification.action == NotificationAction.DOWNLOAD_PURCHASE_ORDER &&
             !notification.targetId
           ) {
-            notification.targetId = body.res?.purchaseOrderUID;
+            notification.targetId = body.res?.saleOrderUID;
           }
           // Cancelar 'mi' oferta seleccionada
           else if (
