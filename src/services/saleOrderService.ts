@@ -847,7 +847,7 @@ export class SaleOrderService {
       };
     }
   };
-  // AWQ
+
   static canceled = async (saleOrderID: string) => {
     try {
       const saleOrderData = await this.getSaleOrderID(saleOrderID);
