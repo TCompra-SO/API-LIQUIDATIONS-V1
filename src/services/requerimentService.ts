@@ -1294,7 +1294,7 @@ export class RequerimentService {
       ]);
 
       const requestBody = {
-        typeScore: "Provider", // Tipo de puntaje
+        typeScore: "Client", // Tipo de puntaje
         uidEntity: saleOrderData?.[0].userProviderID, // ID de la empresa a ser evaluada
         uidUser: saleOrderData?.[0].userClientID, // ID del usuario que evalua
         score: score, // Puntaje

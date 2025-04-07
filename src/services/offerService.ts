@@ -920,7 +920,7 @@ export class OfferService {
       ]);
       // Corregir bien esto solo cambie CLIENT
       const requestBody = {
-        typeScore: "Client", // Tipo de puntaje
+        typeScore: "Provider", // Tipo de puntaje
         uidEntity: saleOrderData?.[0].userClientID, // ID de la empresa a ser evaluada
         uidUser: saleOrderData?.[0].userProviderID, // ID del usuario que evalua
         offerId: saleOrderData?.[0].offerID,
