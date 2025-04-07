@@ -29,33 +29,46 @@ export class OfferRouter {
     );
 
     this.router.get("/getDetailOffer/:uid", GetDetailOfferController);
-    this.router.get("/getOffers/:page/:pageSize", GetOffersController);
     this.router.get(
-      "/getOffersByRequeriment/:requerimentID/:page/:pageSize",checkJwt,
+      "/getOffers/:page/:pageSize",
+      checkJwt,
+      GetOffersController
+    );
+    this.router.get(
+      "/getOffersByRequeriment/:requerimentID/:page/:pageSize",
+      checkJwt,
       GetOffersByRequerimentController
     );
     this.router.get("/getBasicRateData/:uid", getbasicRateDataController);
     this.router.get(
-      "/getOffersByEntity/:uid/:page/:pageSize",checkJwt,
+      "/getOffersByEntity/:uid/:page/:pageSize",
+      checkJwt,
       GetOffersByEntityController
     );
     this.router.get(
-      "/getOffersBySubUser/:uid/:page/:pageSize",checkJwt,
+      "/getOffersBySubUser/:uid/:page/:pageSize",
+      checkJwt,
       GetOffersBySubUserController
     );
     this.router.get(
-      "/getValidation/:userID/:requerimentID",checkJwt,
+      "/getValidation/:userID/:requerimentID",
+      checkJwt,
       getValidationController
     );
 
-    this.router.get("/delete/:uid",checkJwt, deleteController);
+    this.router.get("/delete/:uid", checkJwt, deleteController);
+    this.router.post("/culminate", checkJwt);
+
+    this.router.get("/delete/:uid", checkJwt, deleteController);
     this.router.post(
-      "/culminate",checkJwt,
+      "/culminate",
+      checkJwt,
       saveNotificationMiddleware,
       culminateController
     );
     this.router.post(
       "/canceled",
+      checkJwt,
       saveNotificationMiddleware,
       canceledController
     );
