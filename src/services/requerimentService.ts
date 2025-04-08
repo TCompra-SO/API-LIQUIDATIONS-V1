@@ -1295,8 +1295,8 @@ export class RequerimentService {
 
       const requestBody = {
         typeScore: "Client", // Tipo de puntaje
-        uidEntity: saleOrderData?.[0].userProviderID, // ID de la empresa a ser evaluada
-        uidUser: saleOrderData?.[0].userClientID, // ID del usuario que evalua
+        uidEntity: saleOrderData?.[0].userClientID, // ID de la empresa a ser evaluada
+        uidUser: saleOrderData?.[0].userProviderID, // ID del usuario que evalua
         score: score, // Puntaje
         offerId: offerID,
         comments: comments, // Comentarios
