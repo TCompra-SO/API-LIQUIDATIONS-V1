@@ -918,11 +918,12 @@ export class OfferService {
           },
         },
       ]);
+
       // Corregir bien esto solo cambie CLIENT
       const requestBody = {
         typeScore: "Provider", // Tipo de puntaje
-        uidEntity: saleOrderData?.[0].userClientID, // ID de la empresa a ser evaluada
-        uidUser: saleOrderData?.[0].userProviderID, // ID del usuario que evalua
+        uidEntity: saleOrderData?.[0].userProviderID, // ID de la empresa a ser evaluada
+        uidUser: saleOrderData?.[0].userClientID, // ID del usuario que evalua
         offerId: saleOrderData?.[0].offerID,
         score: score, // Puntaje
         comments: comments, // Comentarios
@@ -935,6 +936,7 @@ export class OfferService {
           requestBody
         );
       } catch (error) {
+        console.log(error);
         if (axios.isAxiosError(error)) {
           return {
             success: false,
