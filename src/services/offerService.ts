@@ -1260,22 +1260,20 @@ export class OfferService {
           }
         );
 
-        if (!canceledByCreator) {
-          const result = await LiquidationModel.findOneAndUpdate(
-            { uid: requerimentID },
-            { $set: { stateID: RequirementState.PUBLISHED } }, // Actualización
-            { new: true }
-          );
+        const result = await LiquidationModel.findOneAndUpdate(
+          { uid: requerimentID },
+          { $set: { stateID: RequirementState.PUBLISHED } }, // Actualización
+          { new: true }
+        );
 
-          if (!result) {
-            return {
-              success: false,
-              code: 409,
-              error: {
-                msg: "No se encontró el requerimiento para actualizar",
-              },
-            };
-          }
+        if (!result) {
+          return {
+            success: false,
+            code: 409,
+            error: {
+              msg: "No se encontró el requerimiento para actualizar",
+            },
+          };
         }
 
         return {
