@@ -1,19 +1,21 @@
 {
   "compilerOptions": {
-    "target": "es2016" /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */,
-    "module": "commonjs" /* Specify what module code is generated. */,
-
-    "esModuleInterop": true /* Emit additional JavaScript to ease support for importing CommonJS modules. This enables 'allowSyntheticDefaultImports' for type compatibility. */,
-    // "preserveSymlinks": true,                         /* Disable resolving symlinks to their realpath. This correlates to the same flag in node. */
-    "forceConsistentCasingInFileNames": true /* Ensure that casing is correct in imports. */,
-
-    "strict": true /* Enable all strict type-checking options. */,
-    "skipLibCheck": true,
-    "types": ["node"],
-    "noImplicitAny": true
+    "target": "es2016",  /* Especifica la versión de JavaScript de salida */
+    "module": "commonjs", /* Especifica el sistema de módulos */
+    "esModuleInterop": true, /* Habilita la interoperabilidad con módulos CommonJS */
+    "forceConsistentCasingInFileNames": true, /* Asegura que los nombres de archivo respeten la mayúsculas/minúsculas */
+    "strict": true, /* Activa todas las opciones de chequeo estricto */
+    "skipLibCheck": true, /* Omite la comprobación de tipos en archivos de librerías */
+    "types": ["node"], /* Incluir tipos de Node.js */
+    "noImplicitAny": true, /* Prevenir el uso implícito de `any` */
+    "outDir": "./dist", /* Directorio de salida de los archivos JavaScript */
+    "rootDir": "./src", /* Directorio raíz de los archivos TypeScript */
+    "sourceMap": true /* Generar archivos `.map` para depuración */
   },
   "include": [
-    "src/globals.ts", // Asegúrate de incluir este archivo
-    "src/**/*"
+    "src/**/*" /* Incluir todos los archivos TypeScript en la carpeta src */
+  ],
+  "exclude": [
+    "node_modules" /* Excluir la carpeta node_modules */
   ]
 }

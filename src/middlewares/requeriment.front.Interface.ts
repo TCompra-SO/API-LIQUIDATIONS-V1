@@ -45,6 +45,7 @@ function transformData(response: any): {
   const arrayData = Array.isArray(response.data)
     ? response.data
     : [response.data];
+  console.log(response.data);
   const transformedData: any[] = arrayData.map(
     (item: ExtendedRequerimentI) => ({
       key: item.uid, // Aquí 'uid' viene de RequerimentI y lo renombramos a 'key'
