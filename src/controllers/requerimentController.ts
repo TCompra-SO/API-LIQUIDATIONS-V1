@@ -39,7 +39,7 @@ const createRequerimentController = async (req: RequestExt, res: Response) => {
           key: dataPack.data[0].key,
           userId: dataPack.data[0].subUser,
         });
-        console.log(dataPack);
+
         // enviamos a la sala de usuarios
         const roomName = `roomRequeriment${
           NameAPI.NAME + responseUser.data?.entityID
@@ -838,8 +838,6 @@ const searchProductsByUserController = async (req: Request, res: Response) => {
           message: `Sala ${roomName} actualizada`,
           dataPack: responseUser.data, // Información relevante
         });
-
-        console.log(`Evento emitido a la sala ${roomName}`);
       }
       res.status(responseUser.code).send(transformData(responseUser));
     } else {

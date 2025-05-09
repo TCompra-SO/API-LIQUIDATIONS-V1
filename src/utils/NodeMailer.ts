@@ -20,7 +20,7 @@ export const sendEmailSaleOrder = async (
   const mailOptions = {
     from: '"TCOMPRA" <tcompraperu@gmail.com>', // Cambia al correo de la empresa si es necesario
     to: emailUser,
-    subject: `Se aceptó tu oferta para el requerimiento: ${data.requerimentTitle}`,
+    subject: `Se aceptó tu oferta para la Liquidación: ${data.requerimentTitle}`,
     html: `${await OrderSaleTemplate(data)}`,
     attachments: [
       {
