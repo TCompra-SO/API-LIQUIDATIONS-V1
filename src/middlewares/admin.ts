@@ -20,7 +20,7 @@ const checkIfIsSystemAdmin = async (
     }
 
     const userBase = await axios.get(
-      `${process.env.API_USER}auth/getBaseDataUser/${userId}`
+      `${process.env.API_USER}auth/checkIfIsSystemAdmin/${userId}`
     );
     if (!userBase.data.success) {
       return res.status(401).send({
@@ -31,7 +31,7 @@ const checkIfIsSystemAdmin = async (
         },
       });
     }
-    if (!userBase.data.data[0].isSystemAdmin)
+    if (!userBase.data.data.isSystemAdmin)
       return res.status(401).send({
         success: false,
         code: 401,
