@@ -18,6 +18,7 @@ import {
 } from "../controllers/requerimentController";
 import { checkJwt } from "../middlewares/session";
 import { saveNotificationMiddleware } from "../middlewares/notification";
+import { checkIfIsSystemAdmin } from "../middlewares/admin";
 export class RequerimentRouter {
   private static instance: RequerimentRouter;
   private router: Router;
@@ -65,7 +66,12 @@ export class RequerimentRouter {
     );
     this.router.post("/searchMainFilters", searchMainFiltersController);
     this.router.post("/searchProductsByUser", searchProductsByUserController);
-    this.router.post("/validate", validateProductController);
+    this.router.post(
+      "/validate",
+      checkJwt,
+      checkIfIsSystemAdmin,
+      validateProductController
+    );
   }
 
   static getRouter(): Router {

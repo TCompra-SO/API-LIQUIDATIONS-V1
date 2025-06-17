@@ -852,7 +852,7 @@ const searchProductsByUserController = async (req: Request, res: Response) => {
   }
 };
 
-const validateProductController = async (req: Request, res: Response) => {
+const validateProductController = async (req: RequestExt, res: Response) => {
   try {
     const { requirementId, value } = req.body;
     if (typeof value !== "boolean") {
