@@ -14,6 +14,7 @@ import {
   canceledController,
   searchMainFiltersController,
   searchProductsByUserController,
+  validateProductController,
 } from "../controllers/requerimentController";
 import { checkJwt } from "../middlewares/session";
 import { saveNotificationMiddleware } from "../middlewares/notification";
@@ -64,6 +65,7 @@ export class RequerimentRouter {
     );
     this.router.post("/searchMainFilters", searchMainFiltersController);
     this.router.post("/searchProductsByUser", searchProductsByUserController);
+    this.router.post("/validate", validateProductController);
   }
 
   static getRouter(): Router {

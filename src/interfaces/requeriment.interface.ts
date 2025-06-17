@@ -21,6 +21,7 @@ export interface RequerimentI {
   images: string[];
   files: string[];
   winOffer: WinOfferI;
+  valid: boolean;
 }
 
 export interface WinOfferI {

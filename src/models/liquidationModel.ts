@@ -100,6 +100,11 @@ const LiquidationSchema = new Schema<RequerimentI>(
       type: Object,
       required: false,
     },
+    valid: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
   },
   {
     versionKey: false,

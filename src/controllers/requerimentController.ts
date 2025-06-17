@@ -852,6 +852,30 @@ const searchProductsByUserController = async (req: Request, res: Response) => {
   }
 };
 
+const validateProductController = async (req: Request, res: Response) => {
+  try {
+    const { requirementId, value } = req.body;
+    if (typeof value !== "boolean") {
+      return res.status(400).json({ msg: "value  debe ser un booleano." });
+    }
+    const response = await RequerimentService.validateProduct(
+      requirementId,
+      value
+    );
+    if (response && response.success) {
+      res.status(response.code).send(response.res);
+    } else {
+      res.status(response.code).send(response.error);
+    }
+  } catch (error) {
+    console.error("Error en validateController", error);
+    res.status(500).send({
+      success: false,
+      msg: "Error interno del Servidor",
+    });
+  }
+};
+
 export {
   createRequerimentController,
   getRequerimentsController,
@@ -867,4 +891,5 @@ export {
   canceledController,
   searchMainFiltersController,
   searchProductsByUserController,
+  validateProductController,
 };

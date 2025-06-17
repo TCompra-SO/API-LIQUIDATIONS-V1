@@ -2094,4 +2094,42 @@ export class RequerimentService {
       };
     }
   };
+
+  static validateProduct = async (requirementId: string, value: boolean) => {
+    try {
+      const result = await LiquidationModel.updateOne(
+        { uid: requirementId },
+        {
+          $set: {
+            valid: value,
+          },
+        }
+      );
+      if (result.matchedCount === 0)
+        return {
+          success: false,
+          code: 404,
+          error: {
+            msg: "No se ha encontrado la liquidación",
+          },
+        };
+      return {
+        success: true,
+        code: 200,
+        res: {
+          msg: "Liquidación actualizada exitosamente",
+          uid: requirementId,
+        },
+      };
+    } catch (error) {
+      console.log(error);
+      return {
+        success: false,
+        code: 500,
+        error: {
+          msg: "Error interno del servidor",
+        },
+      };
+    }
+  };
 }
