@@ -368,6 +368,7 @@ export class RequerimentService {
             number_offers: 1,
             images: 1,
             files: 1,
+            valid: 1,
             winOffer: {
               uid: 1,
               userID: 1,

@@ -864,6 +864,20 @@ const validateProductController = async (req: RequestExt, res: Response) => {
     );
     if (response && response.success) {
       res.status(response.code).send(response.res);
+
+      const roomNameHome = `homeRequeriment${NameAPI.NAME}`;
+      const requerimentUID = response.res?.uid;
+      if (requerimentUID) {
+        const requerimentData = await RequerimentService.getRequerimentById(
+          requerimentUID
+        );
+        io.to(roomNameHome).emit("updateRoom", {
+          dataPack: transformData(requerimentData), // Información relevante
+          typeSocket: TypeSocket.UPDATE,
+          key: requerimentUID,
+          userId: requerimentData.data?.[0].userID,
+        });
+      }
     } else {
       res.status(response.code).send(response.error);
     }
