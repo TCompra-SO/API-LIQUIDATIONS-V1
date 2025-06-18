@@ -2119,6 +2119,7 @@ export class RequerimentService {
         res: {
           msg: "Liquidación actualizada exitosamente",
           uid: requirementId,
+          value,
         },
       };
     } catch (error) {

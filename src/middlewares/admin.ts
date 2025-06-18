@@ -1,6 +1,7 @@
 import { NextFunction, Response } from "express";
 import { RequestExt } from "../interfaces/req-ext";
 import axios from "axios";
+import { JwtPayload } from "jsonwebtoken";
 
 const checkIfIsSystemAdmin = async (
   req: RequestExt,
@@ -8,7 +9,8 @@ const checkIfIsSystemAdmin = async (
   next: NextFunction
 ) => {
   try {
-    const userId = req.user?.id;
+    const { user } = req;
+    const { uid: userId } = user as JwtPayload;
     if (!userId) {
       return res.status(401).send({
         success: false,
@@ -22,6 +24,7 @@ const checkIfIsSystemAdmin = async (
     const userBase = await axios.get(
       `${process.env.API_USER}auth/checkIfIsSystemAdmin/${userId}`
     );
+
     if (!userBase.data.success) {
       return res.status(401).send({
         success: false,
