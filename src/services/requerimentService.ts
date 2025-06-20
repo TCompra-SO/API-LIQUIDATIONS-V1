@@ -200,7 +200,7 @@ export class RequerimentService {
             // Filtrar documentos donde stateID = 1
             stateID: 1,
             // Solo liquidaciones válidas
-            // valid: true,
+            valid: true,
           },
         },
         {
@@ -1740,7 +1740,7 @@ export class RequerimentService {
         ],
         $and: [
           { stateID: 1 }, // Filtra solo los documentos con stateID igual a 1
-          // ...(admin ? [] : [{ valid: true }]),
+          ...(admin ? [] : [{ valid: true }]),
         ],
       };
 

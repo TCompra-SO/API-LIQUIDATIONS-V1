@@ -35,11 +35,11 @@ export class OfferService {
     } = data;
 
     try {
-      const result = RequerimentService.getRequerimentById(requerimentID);
       const API_USER = process.env.API_USER;
       let entityID;
       let subUserEmail = "";
       let emailEntity;
+
       const resultData = await axios.get(
         `${API_USER}auth/getBaseDataUser/${userID}`
       );
@@ -59,7 +59,17 @@ export class OfferService {
         emailEntity = resultData.data.data[0]?.email;
       }
 
-      if (entityID === (await result).data?.[0].entityID) {
+      const result = await RequerimentService.getRequerimentById(requerimentID);
+      if (!result.data?.[0].valid)
+        return {
+          success: false,
+          code: 423,
+          error: {
+            msg: "No puedes ofertar a una liquidación no válida",
+          },
+        };
+
+      if (entityID === result.data?.[0].entityID) {
         return {
           success: false,
           code: 404,
