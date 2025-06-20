@@ -15,6 +15,7 @@ import {
   searchMainFiltersController,
   searchProductsByUserController,
   validateProductController,
+  searchMainFiltersAdminController,
 } from "../controllers/requerimentController";
 import { checkJwt } from "../middlewares/session";
 import { saveNotificationMiddleware } from "../middlewares/notification";
@@ -71,6 +72,12 @@ export class RequerimentRouter {
       checkJwt,
       checkIfIsSystemAdmin,
       validateProductController
+    );
+    this.router.post(
+      "/searchMainFiltersAdmin",
+      checkJwt,
+      checkIfIsSystemAdmin,
+      searchMainFiltersAdminController
     );
   }
 

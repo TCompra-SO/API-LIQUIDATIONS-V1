@@ -801,6 +801,46 @@ const searchMainFiltersController = async (req: Request, res: Response) => {
   }
 };
 
+const searchMainFiltersAdminController = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const {
+      keyWords,
+      location,
+      category,
+      startDate,
+      endDate,
+      companyId,
+      page,
+      pageSize,
+    } = req.body;
+    const responseUser = await RequerimentService.searchMainFilters(
+      keyWords,
+      Number(location),
+      Number(category),
+      startDate,
+      endDate,
+      companyId,
+      Number(page),
+      Number(pageSize),
+      true
+    );
+    if (responseUser && responseUser.success) {
+      res.status(responseUser.code).send(transformData(responseUser));
+    } else {
+      res.status(responseUser.code).send(responseUser.error);
+    }
+  } catch (error) {
+    console.error("Error en searchMainFiltersController", error);
+    res.status(500).send({
+      success: false,
+      msg: "Error interno del Servidor",
+    });
+  }
+};
+
 const searchProductsByUserController = async (req: Request, res: Response) => {
   try {
     const {
@@ -906,4 +946,5 @@ export {
   searchMainFiltersController,
   searchProductsByUserController,
   validateProductController,
+  searchMainFiltersAdminController,
 };

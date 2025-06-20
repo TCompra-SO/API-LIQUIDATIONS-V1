@@ -199,6 +199,8 @@ export class RequerimentService {
           $match: {
             // Filtrar documentos donde stateID = 1
             stateID: 1,
+            // Solo liquidaciones válidas
+            valid: true,
           },
         },
         {
@@ -1721,7 +1723,8 @@ export class RequerimentService {
     endDate?: string,
     companyId?: string,
     page?: number,
-    pageSize?: number
+    pageSize?: number,
+    admin?: boolean
   ) => {
     page = !page || page < 1 ? 1 : page;
     pageSize = !pageSize || pageSize < 1 ? 10 : pageSize;
@@ -1737,6 +1740,7 @@ export class RequerimentService {
         ],
         $and: [
           { stateID: 1 }, // Filtra solo los documentos con stateID igual a 1
+          ...(admin ? [] : [{ valid: true }]),
         ],
       };
 
