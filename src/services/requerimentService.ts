@@ -250,6 +250,7 @@ export class RequerimentService {
       // Obtener el número total de documentos (sin paginación)
       const totalDocuments = await LiquidationModel.countDocuments({
         stateID: 1,
+        valid: true,
       });
 
       if (!requeriments) {
