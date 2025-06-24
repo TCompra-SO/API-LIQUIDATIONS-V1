@@ -1999,6 +1999,7 @@ export class RequerimentService {
             }, // Aquí incluimos todos los campos de la oferta ganadora
             subUserName: { $ifNull: ["$profile.name", "$company.name"] },
             userName: { $ifNull: ["$company.name", "$profile.name"] },
+            valid: 1,
           },
         },
       ];
