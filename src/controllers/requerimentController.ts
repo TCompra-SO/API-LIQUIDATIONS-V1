@@ -911,8 +911,20 @@ const validateProductController = async (req: RequestExt, res: Response) => {
         const requerimentData = await RequerimentService.getRequerimentById(
           requerimentUID
         );
+        const transformedData = transformData(requerimentData);
+
         io.to(roomNameHome).emit("updateRoom", {
-          dataPack: transformData(requerimentData), // Información relevante
+          dataPack: transformedData, // Información relevante
+          typeSocket: TypeSocket.UPDATE,
+          key: requerimentUID,
+          userId: requerimentData.data?.[0].userID,
+        });
+
+        const roomNameRequeriment = `roomRequeriment${
+          NameAPI.NAME + requerimentData.data?.[0].entityID
+        }`;
+        io.to(roomNameRequeriment).emit("updateRoom", {
+          dataPack: transformedData, // Información relevante
           typeSocket: TypeSocket.UPDATE,
           key: requerimentUID,
           userId: requerimentData.data?.[0].userID,
