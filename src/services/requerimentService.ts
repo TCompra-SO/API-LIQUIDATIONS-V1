@@ -2105,7 +2105,7 @@ export class RequerimentService {
   static validateProduct = async (requirementId: string, value: boolean) => {
     try {
       const result = await LiquidationModel.updateOne(
-        { uid: requirementId },
+        { uid: requirementId, stateID: RequirementState.PUBLISHED },
         {
           $set: {
             valid: value,
@@ -2117,7 +2117,7 @@ export class RequerimentService {
           success: false,
           code: 404,
           error: {
-            msg: "No se ha encontrado la liquidación",
+            msg: "No se ha encontrado la liquidación publicada",
           },
         };
       return {
