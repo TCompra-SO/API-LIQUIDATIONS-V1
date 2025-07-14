@@ -10,6 +10,7 @@ const allowedOrigins = [
   process.env.URL_FRONTEND,
   process.env.API_PRODUCTS,
   process.env.API_SERVICES,
+  process.env.API_LIQUIDATIONS,
   process.env.API_USER,
 ];
 
