@@ -5,6 +5,14 @@ import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import { RootRouter } from "./routes/RootRouter";
 import "./initConfig";
+
+const allowedOrigins = [
+  process.env.URL_FRONTEND,
+  process.env.API_PRODUCTS,
+  process.env.API_SERVICES,
+  process.env.API_USER,
+];
+
 export class App {
   private static instance: Express;
 
@@ -16,7 +24,13 @@ export class App {
       App.instance.use(bodyParser.json());
       App.instance.use(
         cors({
-          origin: process.env.URL_FRONTEND,
+          origin: (origin, callback) => {
+            if (allowedOrigins.includes(origin)) {
+              callback(null, true);
+            } else {
+              callback(new Error("Not allowed by CORS"));
+            }
+          },
           credentials: true,
         })
       );
