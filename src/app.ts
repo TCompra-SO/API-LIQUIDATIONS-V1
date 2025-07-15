@@ -5,6 +5,15 @@ import bodyParser from "body-parser";
 import cookieParser from "cookie-parser";
 import { RootRouter } from "./routes/RootRouter";
 import "./initConfig";
+
+const allowedOrigins = [
+  process.env.URL_FRONTEND,
+  process.env.API_PRODUCTS,
+  process.env.API_SERVICES,
+  process.env.API_LIQUIDATIONS,
+  process.env.API_USER,
+];
+
 export class App {
   private static instance: Express;
 
@@ -27,10 +36,16 @@ export class App {
       App.instance.use(
         cors({
           origin: (origin, callback) => {
+<<<<<<< HEAD
             if (!origin || allowedOrigins.includes(origin)) {
               callback(null, true);
             } else {
               console.error("Blocked by CORS:", origin);
+=======
+            if (allowedOrigins.includes(origin)) {
+              callback(null, true);
+            } else {
+>>>>>>> 250d11ac06ffe7403f7650e85639c83652fc8bb1
               callback(new Error("Not allowed by CORS"));
             }
           },
