@@ -36,16 +36,10 @@ export class App {
       App.instance.use(
         cors({
           origin: (origin, callback) => {
-<<<<<<< HEAD
             if (!origin || allowedOrigins.includes(origin)) {
               callback(null, true);
             } else {
               console.error("Blocked by CORS:", origin);
-=======
-            if (allowedOrigins.includes(origin)) {
-              callback(null, true);
-            } else {
->>>>>>> 250d11ac06ffe7403f7650e85639c83652fc8bb1
               callback(new Error("Not allowed by CORS"));
             }
           },
