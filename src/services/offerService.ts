@@ -18,7 +18,7 @@ import { Console, error } from "node:console";
 import { TypeUser } from "../utils/Types";
 import { TypeRequeriment } from "../interfaces/saleOrder.interface";
 import { object } from "joi";
-let API_USER = process.env.API_USER;
+let API_USER = process.env.API_USER + "/v1/";
 export class OfferService {
   static CreateOffer = async (data: OfferI) => {
     const {
@@ -35,7 +35,6 @@ export class OfferService {
     } = data;
 
     try {
-      const API_USER = process.env.API_USER;
       let entityID;
       let subUserEmail = "";
       let emailEntity;

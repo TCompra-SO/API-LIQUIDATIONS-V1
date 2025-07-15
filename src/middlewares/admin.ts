@@ -22,7 +22,7 @@ const checkIfIsSystemAdmin = async (
     }
 
     const userBase = await axios.get(
-      `${process.env.API_USER}auth/checkIfIsSystemAdmin/${userId}`
+      `${process.env.API_USER}/v1/auth/checkIfIsSystemAdmin/${userId}`
     );
 
     if (!userBase.data.success) {
