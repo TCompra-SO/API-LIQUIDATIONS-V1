@@ -4,7 +4,7 @@ export interface OfferI {
   email: string;
   description: string;
   cityID: number;
-  deliveryTimeID: number;
+  deliveryTimeID?: number;
   currencyID: number;
   budget: number;
   includesIGV?: boolean;

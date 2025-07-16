@@ -36,7 +36,7 @@ const OfferSchema = new Schema<OfferI>({
   },
   deliveryTimeID: {
     type: Number,
-    required: true,
+    required: false,
   },
   currencyID: {
     type: Number,
