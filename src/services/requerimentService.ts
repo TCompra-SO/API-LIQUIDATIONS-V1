@@ -821,13 +821,11 @@ export class RequerimentService {
     warranty_Filter: number
   ) => {
     try {
-      const requerimentData =
-        RequerimentService.getRequerimentById(requerimentID);
+      const requerimentData = await RequerimentService.getRequerimentById(
+        requerimentID
+      );
 
-      if (
-        !(await requerimentData).success ||
-        (await requerimentData).data?.length == 0
-      ) {
+      if (!requerimentData.success || requerimentData.data?.length == 0) {
         return {
           success: false,
           code: 400,
@@ -836,11 +834,11 @@ export class RequerimentService {
           },
         };
       }
-      const stateID = (await requerimentData).data?.[0].stateID;
+      const stateID = requerimentData.data?.[0].stateID;
       switch (stateID) {
         case 1:
-          const offerData = OfferService.GetDetailOffer(offerID);
-          const stateOffer = (await offerData).data?.[0].stateID;
+          const offerData = await OfferService.GetDetailOffer(offerID);
+          const stateOffer = offerData.data?.[0].stateID;
 
           if (stateOffer !== 1) {
             return {
@@ -851,7 +849,7 @@ export class RequerimentService {
               },
             };
           }
-          if ((await offerData).success) {
+          if (offerData.success) {
             const updatedLiquidation = await LiquidationModel.findOneAndUpdate(
               { uid: requerimentID },
               {
