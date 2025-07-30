@@ -63,6 +63,7 @@ export enum NotificationAction {
   VIEW_HISTORY = 15,
   VIEW_OFFER = 26,
   DOWNLOAD_PURCHASE_ORDER = 12,
+  CULMINATE = 4,
 }
 
 export enum RequirementType {
