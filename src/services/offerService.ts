@@ -12,12 +12,17 @@ import {
   SaleOrderState,
   RequirementState,
   TypeEntity,
+  RequirementType,
+  NotificationAction,
+  NotificationType,
 } from "../utils/Types";
 import SaleOrderModel from "../models/saleOrder";
 import { Console, error } from "node:console";
 import { TypeUser } from "../utils/Types";
 import { TypeRequeriment } from "../interfaces/saleOrder.interface";
 import { object } from "joi";
+import { SaleOrderService } from "./saleOrderService";
+import { sendNotificationScore } from "../middlewares/notification";
 let API_USER = process.env.API_USER + "/v1/";
 export class OfferService {
   static CreateOffer = async (data: OfferI) => {
@@ -1543,6 +1548,132 @@ export class OfferService {
           currentPage: page,
           pageSize: pageSize,
         },
+      };
+    } catch (error) {
+      console.log(error);
+      return {
+        success: false,
+        code: 500,
+        error: {
+          msg: "Error interno en el Servidor",
+        },
+      };
+    }
+  };
+
+  static getUsersClients = async () => {
+    const now = new Date();
+
+    // Opcional: redondear `now` a las 00:00 para comparar solo días
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    try {
+      const pipeline = [
+        {
+          $match: {
+            stateID: SaleOrderState.PENDING,
+            deliveryDate: {
+              $lt: new Date(today.getTime() - 24 * 60 * 60 * 1000),
+            },
+            $and: [
+              {
+                $or: [
+                  { "scoreState.notifyClient": false },
+                  { "scoreState.notifyClient": { $exists: false } },
+                ],
+              },
+              {
+                $or: [
+                  { "scoreState.notifyClient": false },
+                  { "scoreState.notifyClient": { $exists: false } },
+                ],
+              },
+            ],
+          },
+        },
+        {
+          $project: {
+            uid: 1,
+            userClientID: 1,
+            userNameClient: 1,
+            offerID: 1,
+            offerTitle: 1,
+            userProviderID: 1,
+            nameUserProvider: 1,
+            notifyClient: "$scoreState.notifyClient",
+          },
+        },
+      ];
+
+      const results = await SaleOrderModel.aggregate(pipeline);
+
+      return {
+        success: true,
+        code: 200,
+        data: results,
+        res: {
+          message: "Consulta exitosa",
+        },
+      };
+    } catch (error) {
+      console.log(error);
+      return {
+        success: false,
+        code: 500,
+        error: {
+          msg: "Error interno en el Servidor",
+        },
+      };
+    }
+  };
+
+  static sendNotifyCalificate = async () => {
+    try {
+      const usersData = await this.getUsersClients();
+      if (usersData.data) {
+        for (let i = 0; i < usersData.data?.length; i++) {
+          const notificationData = {
+            senderId: "1",
+            senderName: "System",
+            title:
+              "Confirma la entrega de la Oferta " +
+              usersData.data[i].offerTitle,
+            body:
+              "La Oferta '" +
+              usersData.data[i].offerTitle +
+              "', Tiene una entrega pendiente por confirmar. Verifica si el Proveedor " +
+              usersData.data[i].nameUserProvider +
+              " ya recepciono el bien.",
+            receiverId: usersData.data?.[i].userClientID,
+            targetId: usersData.data?.[i].offerID,
+            targetType: RequirementType.SALE,
+            action: NotificationAction.FINISH_OFFER,
+            type: NotificationType.DIRECT,
+            timestamp: new Date(),
+          };
+
+          const send = await sendNotificationScore(notificationData);
+          if (send) {
+            await SaleOrderService.updateField(
+              usersData.data[i].uid,
+              "scoreState.notifyClient",
+              true
+            );
+          }
+        }
+      } else {
+        return {
+          success: false,
+          code: 500,
+          error: {
+            msg: "No se pudo enviar la notificacion",
+          },
+        };
+      }
+
+      return {
+        success: true,
+        code: 200,
+        data: usersData,
       };
     } catch (error) {
       console.log(error);

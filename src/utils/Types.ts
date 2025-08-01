@@ -64,10 +64,16 @@ export enum NotificationAction {
   VIEW_OFFER = 26,
   DOWNLOAD_PURCHASE_ORDER = 12,
   CULMINATE = 4,
+  FINISH_REQUIREMENT = 44,
+  FINISH_OFFER = 45,
 }
 
 export enum RequirementType {
   GOOD = 1,
   SERVICE = 2,
   SALE = 3,
+}
+export enum NotificationType {
+  DIRECT = 0,
+  BROADCAST = 1,
 }

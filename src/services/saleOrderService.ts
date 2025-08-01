@@ -873,4 +873,24 @@ export class SaleOrderService {
       };
     }
   };
+
+  static updateField = async (uid: string, field: string, value: any) => {
+    try {
+      const updatedOrder = await SaleOrderModel.findOneAndUpdate(
+        { uid },
+        { $set: { [field]: value } },
+        { new: true }
+      );
+
+      return updatedOrder;
+    } catch (error) {
+      return {
+        success: false,
+        code: 500,
+        error: {
+          msg: "Error interno en el Servidor",
+        },
+      };
+    }
+  };
 }

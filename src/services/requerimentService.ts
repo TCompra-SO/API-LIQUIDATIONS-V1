@@ -14,6 +14,9 @@ import {
   OrderType,
   SaleOrderState,
   RequirementState,
+  RequirementType,
+  NotificationAction,
+  NotificationType,
 } from "../utils/Types";
 import SaleOrderModel from "../models/saleOrder";
 import { number } from "joi";
@@ -24,6 +27,7 @@ import { countries } from "../utils/Countries";
 import { RequerimentFrontI } from "./../middlewares/requeriment.front.Interface";
 import { TypeRequeriment } from "../interfaces/saleOrder.interface";
 import { queueUpdate } from "../utils/CounterManager";
+import { sendNotificationScore } from "../middlewares/notification";
 
 let API_USER = process.env.API_USER + "/v1/";
 export class RequerimentService {
@@ -2133,6 +2137,132 @@ export class RequerimentService {
         code: 500,
         error: {
           msg: "Error interno del servidor",
+        },
+      };
+    }
+  };
+
+  static getUsersClients = async () => {
+    const now = new Date();
+
+    // Opcional: redondear `now` a las 00:00 para comparar solo días
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    try {
+      const pipeline = [
+        {
+          $match: {
+            stateID: SaleOrderState.PENDING,
+            deliveryDate: {
+              $lt: new Date(today.getTime() - 24 * 60 * 60 * 1000),
+            },
+            $and: [
+              {
+                $or: [
+                  { "scoreState.notifyProvider": false },
+                  { "scoreState.notifyProvider": { $exists: false } },
+                ],
+              },
+              {
+                $or: [
+                  { "scoreState.deliveredProvider": false },
+                  { "scoreState.deliveredProvider": { $exists: false } },
+                ],
+              },
+            ],
+          },
+        },
+        {
+          $project: {
+            uid: 1,
+            userClientID: 1,
+            userNameClient: 1,
+            requerimentID: 1,
+            requerimentTitle: 1,
+            userProviderId: 1,
+            nameUserProvider: 1,
+            notifyClient: "$scoreState.notifyProvider",
+          },
+        },
+      ];
+
+      const results = await SaleOrderModel.aggregate(pipeline);
+
+      return {
+        success: true,
+        code: 200,
+        data: results,
+        res: {
+          message: "Consulta exitosa",
+        },
+      };
+    } catch (error) {
+      console.log(error);
+      return {
+        success: false,
+        code: 500,
+        error: {
+          msg: "Error interno en el Servidor",
+        },
+      };
+    }
+  };
+
+  static sendNotifyCalificate = async () => {
+    try {
+      const usersData = await this.getUsersClients();
+      if (usersData.data) {
+        for (let i = 0; i < usersData.data?.length; i++) {
+          const notificationData = {
+            senderId: "1",
+            senderName: "System",
+            title:
+              "Confirma la Entrega de la Liquidación" +
+              usersData.data[i].requerimentTitle,
+            body:
+              "La liquidación '" +
+              usersData.data[i].requerimentTitle +
+              "', Tiene una entrega pendiente por confirmar. Verifica si el Cliente " +
+              usersData.data[i].userNameClient +
+              " ya entregó el bien.",
+            receiverId: usersData.data?.[i].userProviderID,
+            targetId: usersData.data?.[i].requerimentID,
+            targetType: RequirementType.SALE,
+            action: NotificationAction.FINISH_REQUIREMENT,
+            type: NotificationType.DIRECT,
+            timestamp: new Date(),
+          };
+
+          const send = await sendNotificationScore(notificationData);
+          if (send) {
+            await SaleOrderService.updateField(
+              usersData.data[i].uid,
+              "scoreState.notifyProvider",
+              true
+            );
+          }
+        }
+      } else {
+        return {
+          success: false,
+          code: 500,
+          error: {
+            msg: "No se pudo enviar la notificacion",
+          },
+        };
+      }
+
+      return {
+        success: true,
+        code: 200,
+        data: usersData,
+      };
+    } catch (error) {
+      console.log(error);
+      return {
+        success: false,
+        code: 500,
+        error: {
+          msg: "Error interno en el Servidor",
         },
       };
     }
