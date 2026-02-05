@@ -15,6 +15,10 @@ const SaleOrderSchema = new Schema<SaleOrderI>({
     type: Number,
     required: true,
   },
+  numOrder: {
+    type: Number,
+    required: true,
+  },
   userClientID: {
     type: String,
     required: true,
@@ -167,7 +171,7 @@ const SaleOrderSchema = new Schema<SaleOrderI>({
 
 const SaleOrderModel = mongoose.model<SaleOrderI>(
   "SaleOrderLiquidations",
-  SaleOrderSchema
+  SaleOrderSchema,
 );
 
 export default SaleOrderModel;

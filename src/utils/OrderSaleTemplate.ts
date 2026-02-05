@@ -35,6 +35,7 @@ export const OrderSaleTemplate = async (data: Omit<SaleOrderI, "uid">) => {
                   <img src="https://res.cloudinary.com/dlxlveta2/image/upload/v1732549506/orden-compra_qgnmwz.png" style="width:44px" class="CToWUd" data-bit="iit" jslog="138226; u014N:xr6bB; 53:WzAsMl0.">
                   
                     <h1 style="margin:0;font-size:30px;line-height:1">Orden de Venta</h1>
+                     <h1 style="margin:0;font-size:30px;line-height:1">Nro: ${data.numOrder}</h1>
                   
               </td>
           </tr>
@@ -131,8 +132,8 @@ export const OrderSaleTemplate = async (data: Omit<SaleOrderI, "uid">) => {
                               <b style="color:#510839">${
                                 data.documentProvider.length > 8 ? "RUC" : "DNI"
                               }: </b><span style="color:#000000">${
-    data.documentProvider
-  }</span><br>
+                                data.documentProvider
+                              }</span><br>
                               <b style="color:#510839">Correo:</b> <a href="mailto:${
                                 data.emailProvider
                               }" target="_blank">${data.emailProvider}</a>
@@ -164,11 +165,11 @@ export const OrderSaleTemplate = async (data: Omit<SaleOrderI, "uid">) => {
                           </td>
                           <td style="text-align:right">
                               <b style="color:#510839">${data.currency} ${
-    data.subtotal
-  }<br>
+                                data.subtotal
+                              }<br>
                               <b style="color:#510839">${data.currency} ${
-    data.totaligv
-  }</b><br>
+                                data.totaligv
+                              }</b><br>
                               <div style="color:#510839">........................</div>
                               <b style="color:#510839;font-size:17px">${
                                 data.currency

@@ -15,7 +15,7 @@ import { OrderSaleTemplate } from "../utils/OrderSaleTemplate";
 import { OrderType, TypeEntity, TypeUser } from "../utils/Types";
 import Fuse from "fuse.js";
 import { PipelineStage, SortOrder } from "mongoose";
-
+import mongoose from "mongoose";
 let API_USER = process.env.API_USER + "/v1/";
 export class SaleOrderService {
   static CreateSaleOrder = async (
@@ -24,7 +24,7 @@ export class SaleOrderService {
     price_Filter: number,
     deliveryTime_Filter: number,
     location_Filter: number,
-    warranty_Filter: number
+    warranty_Filter: number,
   ) => {
     try {
       const offerBasicData = await OfferService.BasicRateData(offerID);
@@ -32,12 +32,10 @@ export class SaleOrderService {
       const userClientID = offerBasicData.data?.[0].userId;
       const subUserClientID = offerBasicData.data?.[0].subUserId;
 
-      const requerimentBasicData = await RequerimentService.BasicRateData(
-        requerimentID
-      );
-      const requerimentData = await RequerimentService.getRequerimentById(
-        requerimentID
-      );
+      const requerimentBasicData =
+        await RequerimentService.BasicRateData(requerimentID);
+      const requerimentData =
+        await RequerimentService.getRequerimentById(requerimentID);
       const userProviderID = requerimentBasicData.data?.[0].userId;
       const subUserProviderID = requerimentBasicData.data?.[0].subUserId;
 
@@ -64,15 +62,15 @@ export class SaleOrderService {
         };
       }
       const userProviderData = await axios.get(
-        `${API_USER}auth/getBaseDataUser/${subUserProviderID}`
+        `${API_USER}auth/getBaseDataUser/${subUserProviderID}`,
       );
 
       const basicProviderData = await axios.get(
-        `${API_USER}auth/getUser/${userProviderID}`
+        `${API_USER}auth/getUser/${userProviderID}`,
       );
 
       const baseClientData = await axios.get(
-        `${API_USER}auth/getUser/${userClientID}`
+        `${API_USER}auth/getUser/${userClientID}`,
       );
 
       const currencyData = await axios.get(`${API_USER}util/utilData/currency`);
@@ -80,11 +78,11 @@ export class SaleOrderService {
       const currencyId = requerimentData.data?.[0].currencyID; // Cambia este valor al ID que deseas buscar
       const currencyValue = currencyData.data.currencies.find(
         (currency: { id: number; value: string; alias: string }) =>
-          currency.id === currencyId
+          currency.id === currencyId,
       )?.alias;
 
       const daysDeliveryData = await axios.get(
-        `${API_USER}util/utilData/delivery_time`
+        `${API_USER}util/utilData/delivery_time`,
       );
 
       const deliveryTimeID = requerimentData.data?.[0].submission_dateID;
@@ -94,7 +92,7 @@ export class SaleOrderService {
         deliveryDate = new Date();
         days = daysDeliveryData.data.times.find(
           (days: { id: number; value: string; days: number }) =>
-            days.id === deliveryTimeID
+            days.id === deliveryTimeID,
         )?.days;
 
         deliveryDate.setDate(deliveryDate.getDate() + days);
@@ -126,8 +124,11 @@ export class SaleOrderService {
         total = price;
       }
 
+      let numOrder = basicProviderData.data.data?.lastNumSellOrder + 1;
+
       const newSaleOrder: Omit<SaleOrderI, "uid"> = {
         type: TypeRequeriment.LIQUIDATIONS,
+        numOrder: numOrder,
         userClientID: userClientID,
         userNameClient: offerBasicData.data?.[0].userName,
         addressClient: baseClientData.data.data?.address,
@@ -175,15 +176,32 @@ export class SaleOrderService {
         userProviderID,
         subUserProviderID,
         "numSaleOrdersProvider",
-        true
+        true,
       );
 
-      await RequerimentService.manageCount(
+      const responseManage = await RequerimentService.manageCount(
         userClientID,
         subUserClientID,
         "numSaleOrdersClient",
-        true
+        true,
       );
+
+      if (responseManage && responseManage.success) {
+        const ResourceCountersCollection =
+          mongoose.connection.collection("resourcecounters");
+
+        await ResourceCountersCollection.updateOne(
+          { uid: userProviderID },
+          {
+            $set: {
+              lastNumSellOrder: numOrder,
+              updateDate: new Date(),
+              typeEntity: basicProviderData.data.data?.typeEntity,
+            },
+          },
+          // SIN upsert: true aquí, para ir sobre seguro
+        );
+      }
       // const sendMail = sendEmailPurchaseOrder(newPurchaseOrder);
       let responseEmail = "";
       /*  if ((await sendMail).success) {
@@ -278,7 +296,7 @@ export class SaleOrderService {
   static getSaleOrdersClient = async (
     userClientID: string,
     page: number,
-    pageSize: number
+    pageSize: number,
   ) => {
     if (!page || page < 1) page = 1;
     if (!pageSize || pageSize < 1) pageSize = 10;
@@ -316,7 +334,7 @@ export class SaleOrderService {
   static getSaleOrdersProvider = async (
     userProviderID: string,
     page: number,
-    pageSize: number
+    pageSize: number,
   ) => {
     if (!page || page < 1) page = 1;
     if (!pageSize || pageSize < 1) pageSize = 10;
@@ -388,7 +406,7 @@ export class SaleOrderService {
     uid: string,
     typeUser: number,
     page: number,
-    pageSize: number
+    pageSize: number,
   ) => {
     if (!page || page < 1) page = 1;
     if (!pageSize || pageSize < 1) pageSize = 10;
@@ -440,7 +458,7 @@ export class SaleOrderService {
     uid: string,
     typeUser: number,
     page: number,
-    pageSize: number
+    pageSize: number,
   ) => {
     try {
       let result;
@@ -499,7 +517,7 @@ export class SaleOrderService {
     fieldName?: string,
     orderType?: number,
     filterColumn?: string,
-    filterData?: [string]
+    filterData?: [string],
   ) => {
     page = !page || page < 1 ? 1 : page;
     pageSize = !pageSize || pageSize < 1 ? 10 : pageSize;
@@ -559,13 +577,13 @@ export class SaleOrderService {
         const searchConditionsWithoutKeyWords = {
           ...searchConditions,
           $and: searchConditions.$and.filter(
-            (condition: any) => !condition.$or
+            (condition: any) => !condition.$or,
           ),
         };
 
         // Obtener todos los registros sin aplicar el filtro de palabras clave
         const allResults = await SaleOrderModel.find(
-          searchConditionsWithoutKeyWords
+          searchConditionsWithoutKeyWords,
         );
         SaleOrderState;
         // Configurar Fuse.js
@@ -644,7 +662,7 @@ export class SaleOrderService {
     fieldName?: string,
     orderType?: number,
     filterColumn?: string,
-    filterData?: [string]
+    filterData?: [string],
   ) => {
     page = !page || page < 1 ? 1 : page;
     pageSize = !pageSize || pageSize < 1 ? 10 : pageSize;
@@ -704,13 +722,13 @@ export class SaleOrderService {
         const searchConditionsWithoutKeyWords = {
           ...searchConditions,
           $and: searchConditions.$and.filter(
-            (condition: any) => !condition.$or
+            (condition: any) => !condition.$or,
           ),
         };
 
         // Obtener todos los registros sin aplicar el filtro de palabras clave
         const allResults = await SaleOrderModel.find(
-          searchConditionsWithoutKeyWords
+          searchConditionsWithoutKeyWords,
         );
 
         // Configurar Fuse.js
@@ -802,7 +820,7 @@ export class SaleOrderService {
       await page.pdf({
         format: "A4",
         printBackground: true,
-      })
+      }),
     );
     // Cerrar el navegador
     await browser.close();
@@ -879,7 +897,7 @@ export class SaleOrderService {
       const updatedOrder = await SaleOrderModel.findOneAndUpdate(
         { uid },
         { $set: { [field]: value } },
-        { new: true }
+        { new: true },
       );
 
       return updatedOrder;
