@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getBrowser } from "../utils/puppeteer";
 import {
   SaleOrderI,
   SaleOrderState,
@@ -799,62 +800,38 @@ export class SaleOrderService {
   };
 
   static createPDF = async (htmlContent: string): Promise<Buffer> => {
-    // Iniciar el navegador de Puppeteer
-    //const browser = await puppeteer.launch();
-    const browser = await puppeteer.launch({
-      args: ["--no-sandbox"], // Deshabilitar sandbox
-    });
-
+    const browser = await getBrowser(); // reutiliza el mismo browser
     const page = await browser.newPage();
-    let pdfBuffer;
-    // Establecer el contenido HTML
-    await page.setContent(htmlContent, { waitUntil: "networkidle0" });
 
-    // Generar el PDF como Buffer (con formato A4)
-    /*  pdfBuffer = (await page.pdf({
-      format: "A4",
-      printBackground: true,
-    })) as Buffer;
-*/
-    pdfBuffer = Buffer.from(
-      await page.pdf({
+    try {
+      await page.setContent(htmlContent, { waitUntil: "networkidle0" });
+
+      const pdfBuffer = await page.pdf({
         format: "A4",
         printBackground: true,
-      }),
-    );
-    // Cerrar el navegador
-    await browser.close();
+      });
 
-    // Retornar el buffer del PDF
-    return pdfBuffer;
+      return Buffer.from(pdfBuffer);
+    } finally {
+      await page.close(); // 🔥 cerramos SOLO la página
+    }
   };
 
   static getSaleOrderPDF = async (uid: string) => {
     try {
       const data = await this.getSaleOrderID(uid);
-      if (data && data.success && data.data) {
-        const html = await OrderSaleTemplate(data.data[0]);
-
-        // Genera el PDF a partir de la plantilla HTML
-        const pdfBuffer: Buffer = await this.createPDF(html);
-
-        // Convierte el PDF a base64
-        const pdfBase64 = pdfBuffer.toString("base64");
-
-        return {
-          success: true,
-          code: 200,
-          data: pdfBase64,
-        };
-      } else {
-        return {
-          success: false,
-          code: 403,
-          error: {
-            msg: "No se ha encontrado la Orden de Compra",
-          },
-        };
+      if (!data?.success || !data.data) {
+        throw new Error("Orden no encontrada");
       }
+
+      const html = await OrderSaleTemplate(data.data[0]);
+      const pdfBuffer = await this.createPDF(html);
+
+      return {
+        success: true,
+        code: 200,
+        data: pdfBuffer, // 🔥 devolvemos Buffer directo
+      };
     } catch (error) {
       console.log(error);
       return {

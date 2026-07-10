@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { SaleOrderService } from "../services/saleOrderService";
+import { pdfQueue } from "../queues/pdf.queue";
 const fs = require("fs");
 
 const CreateSaleOrderController = async (req: Request, res: Response) => {
@@ -18,7 +19,7 @@ const CreateSaleOrderController = async (req: Request, res: Response) => {
       price_Filter,
       deliveryTime_Filter,
       location_Filter,
-      warranty_Filter
+      warranty_Filter,
     );
 
     if (responseUser && responseUser.success) {
@@ -40,7 +41,7 @@ const getSaleOrdersController = async (req: Request, res: Response) => {
     const { page, pageSize } = req.params;
     const responseUser = await SaleOrderService.getSaleOrders(
       Number(page),
-      Number(pageSize)
+      Number(pageSize),
     );
     if (responseUser && responseUser.success) {
       res.status(responseUser.code).send(responseUser);
@@ -62,7 +63,7 @@ const getSaleOrdersProviderController = async (req: Request, res: Response) => {
     const responseUser = await SaleOrderService.getSaleOrdersProvider(
       userProviderID,
       Number(page),
-      Number(pageSize)
+      Number(pageSize),
     );
     if (responseUser && responseUser.success) {
       res.status(responseUser.code).send(responseUser);
@@ -84,7 +85,7 @@ const getSaleOrdersClientController = async (req: Request, res: Response) => {
     const responseUser = await SaleOrderService.getSaleOrdersClient(
       userClientID,
       Number(page),
-      Number(pageSize)
+      Number(pageSize),
     );
     if (responseUser && responseUser.success) {
       res.status(responseUser.code).send(responseUser);
@@ -125,7 +126,7 @@ const getSaleOrdersByProvider = async (req: Request, res: Response) => {
       uid,
       Number(typeUser),
       Number(page),
-      Number(pageSize)
+      Number(pageSize),
     );
     if (responseUser && responseUser.success) {
       res.status(responseUser.code).send(responseUser);
@@ -148,7 +149,7 @@ const getSaleOrdersByClient = async (req: Request, res: Response) => {
       uid,
       Number(typeUser),
       Number(page),
-      Number(pageSize)
+      Number(pageSize),
     );
     if (responseUser && responseUser.success) {
       res.status(responseUser.code).send(responseUser);
@@ -168,17 +169,34 @@ const getSaleOrderPDFController = async (req: Request, res: Response) => {
   const { uid } = req.params;
 
   try {
-    const responseUser = await SaleOrderService.getSaleOrderPDF(uid);
-    if (responseUser && responseUser.success) {
-      res.status(responseUser.code).send(responseUser);
-    } else {
-      res.status(responseUser.code).send(responseUser.error);
+    const response = await pdfQueue(() =>
+      SaleOrderService.getSaleOrderPDF(uid),
+    );
+
+    if (!response || typeof response !== "object" || !("success" in response)) {
+      throw new Error("Respuesta inválida del servicio");
     }
+
+    if (!response.success || !response.data) {
+      return res.status(400).json({
+        success: false,
+        msg: response.error?.msg ?? "No se pudo generar el PDF",
+      });
+    }
+
+    const pdfBuffer = response.data;
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Disposition", `inline; filename=OC-${uid}.pdf`);
+    res.setHeader("Content-Length", pdfBuffer.length);
+
+    return res.send(pdfBuffer);
   } catch (error) {
-    console.error("Error en getSaleOrderPDFController", error);
-    return res.status(500).send({
+    console.error("Error en getPurchaseOrderPDFController", error);
+
+    return res.status(500).json({
       success: false,
-      msg: "Error interno del Servidor",
+      msg: "Error interno del servidor",
     });
   }
 };
@@ -203,7 +221,7 @@ const canceledController = async (req: Request, res: Response) => {
 
 const searchSaleOrdersByProviderController = async (
   req: Request,
-  res: Response
+  res: Response,
 ) => {
   const {
     keyWords,
@@ -226,7 +244,7 @@ const searchSaleOrdersByProviderController = async (
       fieldName,
       Number(orderType),
       filterColumn,
-      filterData
+      filterData,
     );
     if (responseUser && responseUser.success) {
       res.status(responseUser.code).send(responseUser);
@@ -244,7 +262,7 @@ const searchSaleOrdersByProviderController = async (
 
 const searchSaleOrdersByClientController = async (
   req: Request,
-  res: Response
+  res: Response,
 ) => {
   const {
     keyWords,
@@ -267,7 +285,7 @@ const searchSaleOrdersByClientController = async (
       fieldName,
       Number(orderType),
       filterColumn,
-      filterData
+      filterData,
     );
     if (responseUser && responseUser.success) {
       res.status(responseUser.code).send(responseUser);
