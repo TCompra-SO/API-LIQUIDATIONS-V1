@@ -125,7 +125,42 @@ export class SaleOrderService {
         total = price;
       }
 
-      let numOrder = basicProviderData.data.data?.lastNumSellOrder + 1;
+      // --- INCREMENTO ATÓMICO Y BLINDAJE SEGURO DEL NÚMERO DE ORDEN (LIQUIDACIONES) ---
+      const ResourceCountersCollection =
+        mongoose.connection.collection("resourcecounters");
+
+      const counterUpdateResult =
+        await ResourceCountersCollection.findOneAndUpdate(
+          { uid: userProviderID },
+          {
+            $inc: { lastNumSellOrder: 1 },
+            $set: {
+              updateDate: new Date(),
+              typeEntity: basicProviderData.data.data?.typeEntity,
+            },
+          },
+          { upsert: true, returnDocument: "after" },
+        );
+
+      let numOrder = counterUpdateResult?.lastNumSellOrder ?? 1;
+
+      // Protección extra por si resourcecounters estaba desincronizado
+      const highestOrder = await SaleOrderModel.findOne({ userProviderID })
+        .sort({ numOrder: -1 })
+        .select("numOrder");
+
+      const maxExistingNum = highestOrder?.numOrder ?? 0;
+
+      if (numOrder <= maxExistingNum) {
+        numOrder = maxExistingNum + 1;
+        await ResourceCountersCollection.updateOne(
+          { uid: userProviderID },
+          { $set: { lastNumSellOrder: numOrder, updateDate: new Date() } },
+        );
+      }
+
+      console.log("Nuevo numOrder seguro generado (Liquidaciones):", numOrder);
+      // -----------------------------------------------------------------------------
 
       const newSaleOrder: Omit<SaleOrderI, "uid"> = {
         type: TypeRequeriment.LIQUIDATIONS,
@@ -180,39 +215,16 @@ export class SaleOrderService {
         true,
       );
 
-      const responseManage = await RequerimentService.manageCount(
+      await RequerimentService.manageCount(
         userClientID,
         subUserClientID,
         "numSaleOrdersClient",
         true,
       );
 
-      if (responseManage && responseManage.success) {
-        const ResourceCountersCollection =
-          mongoose.connection.collection("resourcecounters");
-
-        await ResourceCountersCollection.updateOne(
-          { uid: userProviderID },
-          {
-            $set: {
-              lastNumSellOrder: numOrder,
-              updateDate: new Date(),
-              typeEntity: basicProviderData.data.data?.typeEntity,
-            },
-          },
-          // SIN upsert: true aquí, para ir sobre seguro
-        );
-      }
-      // const sendMail = sendEmailPurchaseOrder(newPurchaseOrder);
       let responseEmail = "";
-      /*  if ((await sendMail).success) {
-        responseEmail = "Orden de Compra enviada al Email correctamente";
-      } else {
-        responseEmail = "No se ha podido enviar la Orden al Correo";
-      }*/
 
       // Inicia el envío del correo en segundo plano
-
       if (emailUser) {
         sendEmailSaleOrder(newSaleOrder, emailUser)
           .then((result) => {

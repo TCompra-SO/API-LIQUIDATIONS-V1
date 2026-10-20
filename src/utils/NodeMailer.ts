@@ -4,21 +4,27 @@ import { OrderSaleTemplate } from "./OrderSaleTemplate";
 import { SaleOrderService } from "../services/saleOrderService";
 export const sendEmailSaleOrder = async (
   data: Omit<SaleOrderI, "uid">,
-  emailUser: string
+  emailUser: string,
 ) => {
   const html = await OrderSaleTemplate(data);
   const pdfBuffer = await SaleOrderService.createPDF(html);
 
+  const FROM_EMAIL = process.env.SMTP_USER || "contacto@tcompra.com";
   const transporter = nodemailer.createTransport({
-    service: "gmail",
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT) || 587,
+    secure: process.env.SMTP_SECURE === "true", // false en 587
     auth: {
-      user: "tcompraperu@gmail.com",
-      pass: "uzof pfmc lcwz kgko",
+      user: process.env.SMTP_USER,
+      pass: process.env.SMTP_PASS,
+    },
+    tls: {
+      rejectUnauthorized: false,
     },
   });
 
   const mailOptions = {
-    from: '"TCOMPRA" <tcompraperu@gmail.com>', // Cambia al correo de la empresa si es necesario
+    from: `"TCOMPRA" <${FROM_EMAIL}>`, // Cambia al correo de la empresa si es necesario
     to: emailUser,
     subject: `Se aceptó tu oferta para la Liquidación: ${data.requerimentTitle}`,
     html: `${await OrderSaleTemplate(data)}`,
