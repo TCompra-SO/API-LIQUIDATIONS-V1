@@ -169,6 +169,8 @@ const SaleOrderSchema = new Schema<SaleOrderI>({
   },
 });
 
+SaleOrderSchema.index({ userProviderID: 1, numOrder: 1 }, { unique: true });
+
 const SaleOrderModel = mongoose.model<SaleOrderI>(
   "SaleOrderLiquidations",
   SaleOrderSchema,
